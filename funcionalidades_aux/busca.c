@@ -6,7 +6,7 @@
 #include "estruturas.h" 
 #include "fornecidas.h"
 
-// define o tamanho do vetor de strings que guarda estações já vistas
+// define o tamanho do vetor de strings que guarda estações já vistas (A MUDAR/REMOVER DEPENDENDO DOS TESTES DO RUNCODES)
 #define CONTADOR_MAX 1000
 
 
