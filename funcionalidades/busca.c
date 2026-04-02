@@ -6,6 +6,9 @@
 #include "estruturas.h" 
 #include "fornecidas.h"
 
+// define o tamanho do vetor de strings que guarda estações já vistas
+#define CONTADOR_MAX 1000
+
 
 /// ---------------- FUNÇÕES PRIVADAS AUXILIARES ----------------------
 
@@ -118,7 +121,7 @@ void marcadorFlag(char* nomeCampo, OQueBuscar* Query)
     else if (!strcmp(nomeCampo, "nomeEstacao")) {
         Query->checar_nomeEstacao = true;
 
-        char bufferString[50];
+        char bufferString[69];
         ScanQuoteString(bufferString);
 
         // aloca memória pro ponteiro da struct que representa nome da estacao
@@ -129,7 +132,7 @@ void marcadorFlag(char* nomeCampo, OQueBuscar* Query)
     else if (!strcmp(nomeCampo, "nomeLinha")) {
         Query->checar_nomeLinha = true;
 
-        char bufferString[50];
+        char bufferString[69];
         ScanQuoteString(bufferString);
 
         // aloca memória pro ponteiro da struct que representa nome da linha
@@ -202,53 +205,74 @@ long* percorreEBuscaCorrespondencia(FILE* bin, OQueBuscar query, int* qntd_found
 
 void atualizarContadoresCabecalho(FILE* bin)
 {
+    // ---------------------- ALOCAÇÃO DE MEMÓRIA PARA VETOR DE VISTOS (ESTAÇÃO E PARES DE ESTAÇÃO) ------------------------------  
+
     // usando a heap pra não estourar a memória do runcodes
-    char** nomes_vistos = malloc(1000 * sizeof(char*));
+    char** nomes_vistos = malloc(CONTADOR_MAX * sizeof(char*));
+    // usa-se os nomes e não ID's porque ID's diferentes seriam contabilizados, como os ID's de estações que têm o mesmo nome mas estão em linhas diferentes
     int qtd_estacoes = 0;
 
-    typedef struct { int origem; int destino; } Par;
-    Par* pares_vistos = malloc(2000 * sizeof(Par));
+    typedef struct {
+        int origem;
+        int destino;
+    } Par;
+    Par* pares_vistos = malloc(2 * CONTADOR_MAX * sizeof(Par));
+    
     int qtd_pares = 0;
+    // --------------------------- FIM ALOCAÇÃO ---------------------------------------------
 
     fseek(bin, 17, SEEK_SET);
     char removido;
 
+    // le primeiro campo do registro de dados atual E TAMBÉM fica no loop enquanto ainda der pra ler removido
     while (fread(&removido, sizeof(char), 1, bin) == 1)
-    {
+    {   
+        // considera apenas registros não removidos
         if (removido == '0') {
+            
+            // ------------- LEITURA DOS CAMPOS -------------------------
+            
+            // le e salva os campos seguintes (APENAS codEstacao e codProxEstacao SERÃO ÚTEIS, proximo e codLinha lido junto apenas porque tá no meio de tudo)
             int proximo, codEstacao, codLinha, codProxEstacao;
             fread(&proximo, sizeof(int), 1, bin);
-            fread(&codEstacao, sizeof(int), 1, bin);
+            fread(&codEstacao, sizeof(int), 1, bin);        // necessário
             fread(&codLinha, sizeof(int), 1, bin);
-            fread(&codProxEstacao, sizeof(int), 1, bin);
+            fread(&codProxEstacao, sizeof(int), 1, bin);    // necessário
 
-            // Pula: distProxEstacao, codLinhaIntegra, codEstIntegra (3 ints = 12 bytes)
+            // pula distProxEstacao + codLinhaIntegra + codEstIntegra = 3*4=12 bytes
             fseek(bin, 12, SEEK_CUR);
+            
 
+            // leitura do tamanho + nome (estação)
             int tamNomeEstacao;
             fread(&tamNomeEstacao, sizeof(int), 1, bin);
 
-            char bufferNome[250] = "";
+            char bufferNome[69] = "";
             if (tamNomeEstacao > 0) {
                 fread(bufferNome, sizeof(char), tamNomeEstacao, bin);
-                bufferNome[tamNomeEstacao] = '\0';
+                bufferNome[tamNomeEstacao] = '\0';      // importante lembrar de adicionar '\0' no final porque no registro bin é salvo sem
             }
+            // ------------------- FIM LEITURA CAMPOS -------------------------------
 
-            // 1. CONTAGEM DE ESTAÇÕES ÚNICAS (Pela STRING do Nome)
-            bool achou_estacao = false;
-            for (int i = 0; i < qtd_estacoes; i++) {
-                if (strcmp(nomes_vistos[i], bufferNome) == 0) {
-                    achou_estacao = true;
+            // ITERA PELOS VETORES PRA VER SE nomeEstacao e codEstacao -> codProxEstacao JÁ ESTÃO LÁ
+
+            // contagem de estacoes pelo nome 
+            bool achouEstacao = false;
+            for (int i=0; i<qtd_estacoes; i++) {
+                if (!strcmp(nomes_vistos[i], bufferNome)) {
+                    achouEstacao = true;
                     break;
                 }
             }
-            if (!achou_estacao && tamNomeEstacao > 0) {
+
+            // se não achar a estação no vetor de estações vistas, e ela existir, adiciona o nome ao vetor de nomes vistos e  incrimenta
+            if (!achouEstacao && tamNomeEstacao > 0) {
                 nomes_vistos[qtd_estacoes] = malloc(tamNomeEstacao + 1);
                 strcpy(nomes_vistos[qtd_estacoes], bufferNome);
                 qtd_estacoes++;
             }
 
-            // 2. CONTAGEM DE PARES ÚNICOS (codEstacao -> codProxEstacao)
+            // contagem de pares (codEstacao -> codProxEstacao)
             if (codProxEstacao != -1) {
                 bool achou_par = false;
                 for (int i = 0; i < qtd_pares; i++) {
@@ -257,6 +281,8 @@ void atualizarContadoresCabecalho(FILE* bin)
                         break;
                     }
                 }
+
+                // se não achou o par, faz basicamente a mesma coisa de antes: adiciona no vetor de vistos e incrementa qntd
                 if (!achou_par) {
                     pares_vistos[qtd_pares].origem = codEstacao;
                     pares_vistos[qtd_pares].destino = codProxEstacao;
@@ -264,27 +290,26 @@ void atualizarContadoresCabecalho(FILE* bin)
                 }
             }
 
-            // Salta o lixo restante para ir ao próximo registro
-            // Lemos: 1 (removido) + 16 (4 ints) + 12 (pulados) + 4 (tam) + tamNome = 33 + tamNome
+            // pula lixo 
+            // lido até agora: 1 (removido) + 16 (4 ints) + 12 (pulados) + 4 (tam) + tamNome = 33 + tamNome
             fseek(bin, 80 - (33 + tamNomeEstacao), SEEK_CUR);
 
         } else {
-            fseek(bin, 79, SEEK_CUR); // Registro estava deletado, pula inteiro
+            fseek(bin, 79, SEEK_CUR); // registro deletado pula)
         }
     }
 
     // é.... (só assim pra passar nos testes)
     qtd_pares--;
 
-    // Grava os novos valores cravados no cabeçalho
+    // grava valores atualizados no cabeçalho
     fseek(bin, 9, SEEK_SET);
     fwrite(&qtd_estacoes, sizeof(int), 1, bin);
     fwrite(&qtd_pares, sizeof(int), 1, bin);
 
-    // Limpeza rigorosa de memória
-    for (int i = 0; i < qtd_estacoes; i++) {
+    // LIBERAR MEMÓRIA ALOCADA PROS VETORES DE VISTOS
+    for (int i = 0; i < qtd_estacoes; i++)
         free(nomes_vistos[i]);
-    }
     free(nomes_vistos);
     free(pares_vistos);
 }

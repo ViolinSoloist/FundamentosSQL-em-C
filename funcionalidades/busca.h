@@ -11,7 +11,7 @@ deixei separado pois como é algo usado em diferentes funções, é interessante
 
 a forma como a busca funciona, é basicamente usando uma struct (está em estruturas.h) OQueBuscar, como se fosse um "checklist":
 depois de ler a entrada, salva nessa struct quais são os campos a serem pesquisados, marcando eles como true (os campos começam inicializados como false)
-e quais são os valores desse campo.
+e quais são os valores buscados desse campo.
 
 Então, na hora de percorrer o arquivo bin, vai de registro em registro, e em cada registro, copia os dados dele pra struct registro, e compara campo a campo da struct OQueBuscar
 até achar o campo que esteja marcado como true (ou seja, campo que está sendo buscado), quando acha, ve se o valor dele corresponde com a da busca.
@@ -31,6 +31,10 @@ void zerarFlags(OQueBuscar* query);
 */
 long* percorreEBuscaCorrespondencia(FILE* bin, OQueBuscar query, int* qtd_encontrados);
 
+/// @attention USAR NO FINAL DAS FUNCIONALIDADES QUE ALTERAM OS REGISTROS : INSERIR, DELETAR, ETC
+/// @brief vasculha todos os registros de dados do arq bin para contar qntd estacoes e qntd de pares de estacoes para atualizar pós delete, insert, etc
+// usa vetores de estacoes/pares vistos alocados dinamicamente para ir guardando os que já foram vistos
+/// recebe arquivo @param bin 
 void atualizarContadoresCabecalho(FILE* bin);
 
 #endif
