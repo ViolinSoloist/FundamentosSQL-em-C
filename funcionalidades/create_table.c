@@ -49,7 +49,7 @@ void create_table(const char *nomeArquivoCSV, const char *nomeArquivoBin)
     int proxRRN = 0;            // próximo RRN disponível (começa zerado)
 
     // valores zerados mas que ainda antes da função terminar serão preenchidos:
-    int nroEstacoes = 0;            // qntd de estacoes diferentes  DEV NOTE: usar estrutura SET para armazenar entidades únicas e depois só contar
+    int nroEstacoes = 0;            // qntd de estacoes diferentes 
     int nroParesEstacao = 0;
     
     // escrever campo a campo para evitar problemas com padding
@@ -90,6 +90,7 @@ void create_table(const char *nomeArquivoCSV, const char *nomeArquivoBin)
         if (strlen(linha) == 0) continue; 
 
         // total é a linha inteira, após primeira execução de strsep, pedaco = tudo até a primeira virgula, total = todo restante
+        // e se repetir isso vai indo até a próxima vírgula da mesma forma
         char *total = linha;
         char *pedaco;
 
@@ -120,10 +121,10 @@ void create_table(const char *nomeArquivoCSV, const char *nomeArquivoBin)
         int codEstIntegra = (pedaco && *pedaco) ? atoi(pedaco) : -1;
 
         // contagem estações únicas
-        int estacaoJaExiste = 0;
+        bool estacaoJaExiste = false;
         for (int i = 0; i < totalEstacoes; i++) {
             if (idsVistos[i] == codEstacao) {
-                estacaoJaExiste = 1;
+                estacaoJaExiste = true;
                 break;
             }
         }
@@ -133,14 +134,17 @@ void create_table(const char *nomeArquivoCSV, const char *nomeArquivoBin)
         }
 
         // contagem de pares
-        if (codProxEstacao != -1) { 
-            int parJaExiste = 0;
+        if (codProxEstacao != -1)
+        { 
+            bool parJaExiste = false;
+
             for (int i = 0; i < totalPares; i++) {
                 if (paresVistos[i].origem == codEstacao && paresVistos[i].destino == codProxEstacao) {
-                    parJaExiste = 1;
+                    parJaExiste = true;
                     break;
                 }
             }
+
             if (!parJaExiste) {
                 paresVistos[totalPares].origem = codEstacao;
                 paresVistos[totalPares].destino = codProxEstacao;
@@ -210,5 +214,5 @@ void create_table(const char *nomeArquivoCSV, const char *nomeArquivoBin)
     fclose(csv);
     fclose(bin);
 
-    BinarioNaTela((char *)nomeArquivoBin);
+    BinarioNaTela((char*)nomeArquivoBin);
 }

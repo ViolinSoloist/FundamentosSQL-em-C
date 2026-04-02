@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "create_table.h"
+#include "delete.h"
+#include "busca.h"
 
 int main() {   
     // menu de opções
@@ -41,7 +44,10 @@ int main() {
             break;
 
         case 4:
-			// DELETE: recebe nome do arquivo + critérios de busca para remoção
+			// DELETE: deleta N registros
+            int n;
+            scanf("%s %d", arquivoSaida, &n);
+            deletar(arquivoSaida, n);
     
             break;
 

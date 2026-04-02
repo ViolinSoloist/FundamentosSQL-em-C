@@ -1,6 +1,8 @@
 #ifndef ESTRUTURAS_H
 #define ESTRUTURAS_H
 
+#include <stdbool.h>
+
 // registro de cabeçalho (início do arquivo .bin) 17 bytes
 typedef struct {
     char status;            // 0 -> inconsistente 1 -> consistente
@@ -10,7 +12,7 @@ typedef struct {
     int nroParesEstacao;    // qntd de pares (codEstacao e codProxEstacao) distintos já armazenados 
 } Cabecalho;
 
-// registro de dados (tam variavel)
+// registro de dados (tam variavel), serve para mostrar como vai ser o nome e a composição de todos os campos de cada registro de dados
 typedef struct {
     char removido;        
     int proximo;   
@@ -25,5 +27,19 @@ typedef struct {
     int tanNomeLinha;
     char* nomeLinha;
 } Registro;
+
+/// @brief serve como se fosse uma lista do que se está buscando quando uma busca for realizada
+// salva os campos que se busca e os valores procurados 
+typedef struct {
+    Registro valores;
+
+    // flags para avisar o que se está buscando quando uma busca for feita
+    bool checar_codEstacao;
+    bool checar_codLinha;
+    bool checar_codLinhaIntegra;
+    bool checar_codEstIntegra;
+    bool checar_nomeEstacao;
+    bool checar_nomeLinha;
+} OQueBuscar;
 
 #endif

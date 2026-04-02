@@ -2,7 +2,7 @@ MAIN = projetoTrab.c
 
 FORNECIDAS = funcoes_fornecidas/fornecidas.c
 
-FUNCIONALIDADES = funcionalidades/create_table.c
+FUNCIONALIDADES = funcionalidades/create_table.c funcionalidades/delete.c funcionalidades/busca.c
 
 FLAGS = -Wall -Wextra -std=c99
 
