@@ -53,7 +53,7 @@ void deletar(const char *nomeArquivoBin, int n) {
 
         // 1. CHAMA A BUSCA GENÉRICA
         int qtd_encontrados = 0;
-        long* offsets = percorre_e_buscaCorrespondencia(file, oqbuscar, &qtd_encontrados);
+        long* offsets = percorreEBuscaCorrespondencia(file, oqbuscar, &qtd_encontrados);
 
         // 2. SE ACHOU ALGUÉM, APLICA A MATEMÁTICA DE DELEÇÃO
         if (qtd_encontrados > 0 && offsets != NULL) {
@@ -86,7 +86,7 @@ void deletar(const char *nomeArquivoBin, int n) {
     fseek(file, 1, SEEK_SET);
     fwrite(&topo, sizeof(int), 1, file);
 
-    atualizar_contadores_cabecalho(file);
+    atualizarContadoresCabecalho(file);
 
     // edições finalizadas => consistente novamente
     status = '1';
