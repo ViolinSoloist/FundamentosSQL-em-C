@@ -19,6 +19,7 @@ Faz isso para todos os campos, e se em qualquer um deles o valor dá diferente, 
 */
 
 // lê parâmetros da busca (seja pra deleção, select, etc) e marca na struct OQueBuscar os campos a serem buscados com true
+/// @attention LEMBRAR DE DAR FREE NOS CAMPOS QUE CORRESPONDEM AOS NOMES (SÃO CAMPOS ALOCADOS DINAMICAMENTE) QND TERMINAR DE USAR O REGISTRO DE QUERY
 void marcadorFlag(char* nomeCampo, OQueBuscar* Query);
 
 // antes de marcar os campos buscados, inicializa todos como false

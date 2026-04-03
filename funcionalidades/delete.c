@@ -19,12 +19,13 @@ void deletar(const char *nomeArquivoBin, int n) {
     fseek(file, 1, SEEK_SET);
     fread(&topo, sizeof(int), 1, file);
     
-    // loop
     for (int i=0; i<n; i++) {
         int m;
         scanf("%d", &m);
 
         OQueBuscar oqbuscar;
+
+        // ----------------- PREENCHIMENTO DA QUERY "CHECKLIST" -------------------------------
 
         // zera todas as flags antes de marcar as que vao ser buscadas como true
         zerarFlags(&oqbuscar);
@@ -34,6 +35,8 @@ void deletar(const char *nomeArquivoBin, int n) {
             scanf("%s", nomeCampo);
             marcadorFlag(nomeCampo, &oqbuscar); // LEMBRAR DE LIBERAR ALOCAÇÃO PARA OS CAMPOS DE NOMES
         }
+
+        // --------------------- FIM PREENCHIMENTO REGISTRO DE BUSCA --------------------------
 
         // chama função de busca para salvar correspondencias
         int qtd_encontrados = 0;
