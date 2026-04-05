@@ -9,6 +9,7 @@
 
 // define o tamanho do vetor de strings que guarda estações já vistas (A MUDAR/REMOVER DEPENDENDO DOS TESTES DO RUNCODES)
 #define CONTADOR_MAX 1000
+#define MAX_NOMECAMPO 69
 
 
 /// ---------------- FUNÇÕES PRIVADAS AUXILIARES ----------------------
@@ -50,6 +51,52 @@ bool atendeCriterios(Registro reg_lido, OQueBuscar query)
 
 
 //  --------------- FUNÇÕES PÚBLICAS (PRINCIPAIS) -----------------------------
+
+/**
+ * @private função auxiliar, le o registro atual do arq bin e copia os dados pra struct Registro
+ * recebe ponteiro para @param regAtual e o arquivo @param bin
+ */
+void binToStruct(Registro* regAtual, FILE* bin) {
+    regAtual->removido = '0';
+
+    // leitura pra struct Registro dos campos fixos (28 bytes: 7 * 4 )
+    fread(&regAtual->proximo, sizeof(int), 1, bin);
+    fread(&regAtual->codEstacao, sizeof(int), 1, bin);
+    fread(&regAtual->codLinha, sizeof(int), 1, bin);
+    fread(&regAtual->codProxEstacao, sizeof(int), 1, bin);
+    fread(&regAtual->distProxEstacao, sizeof(int), 1, bin);
+    fread(&regAtual->codLinhaIntegra, sizeof(int), 1, bin);
+    fread(&regAtual->codEstIntegra, sizeof(int), 1, bin);
+    
+    int bytes_lidos = 29; // 1 char  + 7*4
+
+    // acho que isso dá pra usar vetor estático, pra evitar malloc
+    char bufferEstacao[69] = ""; 
+    char bufferLinha[69] = "";
+
+    fread(&regAtual->tamNomeEstacao, sizeof(int), 1, bin);
+    bytes_lidos += 4;
+
+    // se (tamanho > 0) => existe nome
+    if (regAtual->tamNomeEstacao > 0) {
+        fread(bufferEstacao, sizeof(char), regAtual->tamNomeEstacao, bin);
+        bufferEstacao[regAtual->tamNomeEstacao] = '\0';
+        bytes_lidos += regAtual->tamNomeEstacao;
+    }
+    regAtual->nomeEstacao = bufferEstacao; // aponta nomeEstacao da struct para o buffer local, em vez de alocar dinamicamente
+
+    fread(&regAtual->tanNomeLinha, sizeof(int), 1, bin);
+    bytes_lidos += 4;
+    if (regAtual->tanNomeLinha > 0) {
+        fread(bufferLinha, sizeof(char), regAtual->tanNomeLinha, bin);
+        bufferLinha[regAtual->tanNomeLinha] = '\0';
+        bytes_lidos += regAtual->tanNomeLinha;
+    }
+    regAtual->nomeLinha = bufferLinha;
+    
+    // pular lixo
+    fseek(bin, 80 - bytes_lidos, SEEK_CUR);
+}
 
 
 // procedimento: cascata de if/elses par ver qual campo está sendo buscado (não é bonito mas eu acho que funciona)
@@ -109,6 +156,19 @@ void zerarFlags(OQueBuscar* query)
     
     query->valores.nomeEstacao = NULL;
     query->valores.nomeLinha = NULL;
+}
+
+/// @attention lembrar de desalocar memória  
+void preencherQuery(OQueBuscar* oqbuscar, int m) {
+    // zera todas as flags antes de marcar as que vao ser buscadas como true
+    zerarFlags(oqbuscar);
+    
+    // loop que que pega todos os nomes de campo de entrada e também lê o valor dos campos a serem buscados, para preencher a "checklist"
+    for (int j=0; j<m; j++) {
+        char nomeCampo[MAX_NOMECAMPO];
+        scanf("%s", nomeCampo);
+        marcadorFlag(nomeCampo, oqbuscar); // LEMBRAR DE LIBERAR ALOCAÇÃO PARA OS CAMPOS DE NOMES
+    }
 }
 
 /**
