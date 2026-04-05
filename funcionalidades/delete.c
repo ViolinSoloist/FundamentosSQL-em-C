@@ -7,7 +7,6 @@
 #include "delete.h"
 #include "manipul_arq.h"
 
-#define MAX_NOMECAMPO 67
 #define DEBUGGAR false
 
 // ----------------- FUNÇÕES AUXILIARES/PRIVADAS --------------------------
@@ -48,18 +47,9 @@ void lerLinhaBuscaDeleta(FILE* file, int* topo)
 
     OQueBuscar oqbuscar;
 
-    // ----------------- PREENCHIMENTO DA QUERY "CHECKLIST" -------------------------------
-
-    // zera todas as flags antes de marcar as que vao ser buscadas como true
-    zerarFlags(&oqbuscar);
-
-    for (int j=0; j<m; j++) {
-        char nomeCampo[MAX_NOMECAMPO];
-        scanf("%s", nomeCampo);
-        marcadorFlag(nomeCampo, &oqbuscar); // LEMBRAR DE LIBERAR ALOCAÇÃO PARA OS CAMPOS DE NOMES
-    }
-
-    // --------------------- FIM PREENCHIMENTO REGISTRO DE BUSCA --------------------------
+    // PREENCHIMENTO DA QUERY "CHECKLIST"
+    preencherQuery(&oqbuscar, m);
+    
 
     // chama função de busca para salvar correspondencias
     int qtd_encontrados = 0;

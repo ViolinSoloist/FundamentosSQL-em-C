@@ -25,6 +25,8 @@ void marcadorFlag(char* nomeCampo, OQueBuscar* Query);
 // antes de marcar os campos buscados, inicializa todos como false
 void zerarFlags(OQueBuscar* query);
 
+void preencherQuery(OQueBuscar* oqbuscar, int m);
+
 /**
  * retorna vetor (alocado dinamicamente) de offsets (meio que "index" no arquivo) onde houve match. (depois tem que traduzir offset pra RRN)
  * @param qtd_encontrados é atualizado internamente.

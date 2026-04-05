@@ -8,6 +8,7 @@
 
 // define o tamanho do vetor de strings que guarda estações já vistas (A MUDAR/REMOVER DEPENDENDO DOS TESTES DO RUNCODES)
 #define CONTADOR_MAX 1000
+#define MAX_NOMECAMPO 69
 
 
 /// ---------------- FUNÇÕES PRIVADAS AUXILIARES ----------------------
@@ -153,6 +154,19 @@ void zerarFlags(OQueBuscar* query)
     
     query->valores.nomeEstacao = NULL;
     query->valores.nomeLinha = NULL;
+}
+
+/// @attention lembrar de desalocar memória  
+void preencherQuery(OQueBuscar* oqbuscar, int m) {
+    // zera todas as flags antes de marcar as que vao ser buscadas como true
+    zerarFlags(oqbuscar);
+    
+    // loop que que pega todos os nomes de campo de entrada e também lê o valor dos campos a serem buscados, para preencher a "checklist"
+    for (int j=0; j<m; j++) {
+        char nomeCampo[MAX_NOMECAMPO];
+        scanf("%s", nomeCampo);
+        marcadorFlag(nomeCampo, oqbuscar); // LEMBRAR DE LIBERAR ALOCAÇÃO PARA OS CAMPOS DE NOMES
+    }
 }
 
 /**

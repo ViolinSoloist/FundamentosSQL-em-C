@@ -6,7 +6,7 @@ LOCAL1 = funcionalidades
 
 LOCAL2 = funcionalidades_aux
 
-FUNCIONALIDADES = $(LOCAL1)/create_table.c $(LOCAL1)/delete.c $(LOCAL2)/busca.c $(LOCAL2)/manipul_arq.c
+FUNCIONALIDADES = $(LOCAL1)/create_table.c $(LOCAL1)/delete.c $(LOCAL1)/update.c $(LOCAL2)/busca.c $(LOCAL2)/manipul_arq.c 
 
 FLAGS = -Wall -Wextra -std=c99
 

@@ -4,6 +4,7 @@
 #include "create_table.h"
 #include "delete.h"
 #include "busca.h"
+#include "update.h"
 
 #define PRINTAR_MENU false
 
@@ -49,10 +50,8 @@ int main() {
 
         case 4:
 			// DELETE: deleta N registros
-            int n;
-            scanf("%s %d", arquivoSaida, &n);
+            int n; scanf("%s %d", arquivoSaida, &n);
             deletar(arquivoSaida, n);
-    
             break;
 
         case 5:
@@ -61,6 +60,8 @@ int main() {
 		
 		case 6:
 			// UPDATE: atualizar dados na tabela
+            int n; scanf("%s %d", arquivoSaida, &n);
+            update(arquivoSaida, n);
 			break;
 
         default:
