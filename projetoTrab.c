@@ -4,6 +4,8 @@
 #include "create_table.h"
 #include "delete.h"
 #include "busca.h"
+#include "select_all.h"
+#include "bin_struct.h"
 
 #define PRINTAR_MENU false
 
@@ -26,7 +28,7 @@ int main() {
     char arquivoSaida[50];
 
     // leitura da operação
-    if (scanf("%d", &funcionalidade) != 1) {
+    if (scanf("%d ", &funcionalidade) != 1) {
 		fprintf(stderr, "Escolha inexistente.\n");
         return 0; // fim se não houver entrada
     }
@@ -39,7 +41,9 @@ int main() {
             break;
             
         case 2: 
-            // SELECT ALL: le arquivo bin e imprime na tela	
+            // SELECT ALL: le arquivo bin e imprime na tela
+            scanf("%s", arquivoEntrada);
+            select_all(arquivoEntrada);	
             break;
             
         case 3:
