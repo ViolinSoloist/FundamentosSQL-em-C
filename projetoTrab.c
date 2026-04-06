@@ -9,6 +9,7 @@
 #include "busca.h"
 #include "select_all.h"
 #include "select_where.h"
+#include "insert.h"
 #include "update.h"
 
 #define PRINTAR_MENU false
@@ -60,18 +61,20 @@ int main() {
 
         case 4:
 			// DELETE: deleta N registros
-            scanf("%s %d", arquivoSaida, &n);
-            deletar(arquivoSaida, n);
+            scanf("%s %d", arquivoEntrada, &n);
+            deletar(arquivoEntrada, n);
             break;
 
         case 5:
 			// INSERT INTO: inserir dados na tabela
+            scanf("%s %d", arquivoEntrada, &n);
+            insert(arquivoEntrada, n);
 			break;
 		
 		case 6:
-			// // UPDATE: atualizar dados na tabela
-            // scanf("%s %d", arquivoSaida, &n);
-            // update((char*)arquivoSaida, n);
+			// UPDATE: atualizar dados na tabela
+            scanf("%s %d", arquivoEntrada, &n);
+            update(arquivoEntrada, n);
 			break;
 
         default:
