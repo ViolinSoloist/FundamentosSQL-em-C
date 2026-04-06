@@ -9,7 +9,7 @@
 
 
 /// @private @brief 
-Le2LinhasBuscaEUpdate(FILE* nomeArquivoBin)
+void Le2LinhasBuscaEUpdate(FILE* file)
 {    
     int m; scanf("%d", &m);
     OQueBuscar oqbuscar;
@@ -40,12 +40,12 @@ Le2LinhasBuscaEUpdate(FILE* nomeArquivoBin)
 
 }
 
-void update(FILE* nomeArquivoBin, int n)
+void update(const char* nomeArquivoBin, int n)
 {
     // rotina ao abrir arquivo binário rb+
     FILE* file = abrirVerificarInconsistentar(nomeArquivoBin);
 
     for (int i=0; i<n; i++) 
-        Le2LinhasBuscaEUpdate(nomeArquivoBin);
+        Le2LinhasBuscaEUpdate(file);
     
 }

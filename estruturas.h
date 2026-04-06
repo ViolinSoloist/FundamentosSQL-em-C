@@ -42,4 +42,10 @@ typedef struct {
     bool checar_nomeLinha;
 } OQueBuscar;
 
+// struct e vetor para guardar os pares únicos
+typedef struct {
+    int origem;
+    int destino;
+} Par;
+
 #endif

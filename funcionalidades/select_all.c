@@ -6,7 +6,7 @@
 #include "busca.h"
 #include "manipul_arq.h"
 #include "select_all.h"
-#include "bin_struct.h"
+// #include "bin_struct.h"
 
 void mostrarRegistro(Registro* registro_lido){
     

@@ -3,7 +3,7 @@
 #include <stdbool.h>
 
 // lembrando que é em rb+
-FILE* abrirVerificarInconsistentar(char* nomeArqBin)
+FILE* abrirVerificarInconsistentar(const char* nomeArqBin)
 {
     FILE* file = fopen(nomeArqBin, "rb+");
     if (file == NULL) {
