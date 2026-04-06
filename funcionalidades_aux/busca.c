@@ -5,7 +5,6 @@
 
 #include "estruturas.h" 
 #include "fornecidas.h"
-#include "bin_struct.h"
 
 // define o tamanho do vetor de strings que guarda estações já vistas (A MUDAR/REMOVER DEPENDENDO DOS TESTES DO RUNCODES)
 #define CONTADOR_MAX 1000
@@ -44,6 +43,14 @@ bool atendeCriterios(Registro reg_lido, OQueBuscar query)
     if (query.checar_nomeLinha)
         if (strcmp(reg_lido.nomeLinha, query.valores.nomeLinha) != 0)
             return false;
+
+    if (query.checar_codProxEstacao)
+        if (reg_lido.codProxEstacao != query.valores.codProxEstacao)
+            return false;
+
+    if (query.checar_distProxEstacao)
+        if (reg_lido.distProxEstacao != query.valores.distProxEstacao)
+            return false;
     
     // só chega aqui se passar por todos os filtros de pesquisa
     return true; 
@@ -71,8 +78,8 @@ void binToStruct(Registro* regAtual, FILE* bin) {
     int bytes_lidos = 29; // 1 char  + 7*4
 
     // acho que isso dá pra usar vetor estático, pra evitar malloc
-    char bufferEstacao[69] = ""; 
-    char bufferLinha[69] = "";
+    static char bufferEstacao[69] = ""; 
+    static char bufferLinha[69] = "";
 
     fread(&regAtual->tamNomeEstacao, sizeof(int), 1, bin);
     bytes_lidos += 4;
@@ -103,6 +110,9 @@ void binToStruct(Registro* regAtual, FILE* bin) {
 // também pega a entrada do valor do campo que está sendo buscado para a struct de query
 void marcadorFlag(char* nomeCampo, OQueBuscar* Query)
 {
+    //Char que sempre vai ler o valor para verificar se é nulo
+    char valor[5];
+    
     // se as strings forem iguais, strcmp retorna 0 ao em vez de 1, por isso o "!" em cada if
     if (!strcmp(nomeCampo, "codEstacao")) {
         Query->checar_codEstacao = true;
@@ -111,15 +121,24 @@ void marcadorFlag(char* nomeCampo, OQueBuscar* Query)
     }
     else if (!strcmp(nomeCampo, "codLinha")) {
         Query->checar_codLinha = true;
-        scanf("%d", &Query->valores.codLinha);
+        scanf("%s", valor);
+        if (!strcmp(valor, "NULO"))
+            Query->valores.codLinha = -1;
+        else Query->valores.codLinha = atoi(valor);
     }
     else if (!strcmp(nomeCampo, "codLinhaIntegra")) {
         Query->checar_codLinhaIntegra = true;
-        scanf("%d", &Query->valores.codLinhaIntegra);
+        scanf("%s", valor);
+        if (!strcmp(valor, "NULO"))
+            Query->valores.codLinhaIntegra = -1;
+        else Query->valores.codLinhaIntegra = atoi(valor);
     }
     else if (!strcmp(nomeCampo, "codEstIntegra")) {
         Query->checar_codEstIntegra = true;
-        scanf("%d", &Query->valores.codEstIntegra);
+        scanf("%s", valor);
+        if (!strcmp(valor, "NULO"))
+            Query->valores.codEstIntegra = -1;
+        else Query->valores.codEstIntegra = atoi(valor);
     }
     else if (!strcmp(nomeCampo, "nomeEstacao")) {
         Query->checar_nomeEstacao = true;
@@ -142,6 +161,20 @@ void marcadorFlag(char* nomeCampo, OQueBuscar* Query)
         Query->valores.nomeLinha = malloc(strlen(bufferString) + 1);
         strcpy(Query->valores.nomeLinha, bufferString);
     }
+    else if (!strcmp(nomeCampo, "distProxEstacao")){
+        Query->checar_distProxEstacao = true;
+        scanf("%s", valor);
+        if (!strcmp(valor, "NULO"))
+            Query->valores.distProxEstacao = -1;
+        else Query->valores.distProxEstacao = atoi(valor);
+    }
+    else if (!strcmp(nomeCampo, "codProxEstacao")){
+        Query->checar_codProxEstacao = true;
+        scanf("%s", valor);
+        if (!strcmp(valor, "NULO"))
+            Query->valores.codProxEstacao = -1;
+        else Query->valores.codProxEstacao = atoi(valor);
+    }
 }
 
 /// @brief zera todos os indicadores de busca antes de ler a entrada e marcar os campos que precisam ser buscados com true
@@ -153,6 +186,8 @@ void zerarFlags(OQueBuscar* query)
     query->checar_codEstIntegra = false;
     query->checar_nomeEstacao = false;
     query->checar_nomeLinha = false;
+    query->checar_codProxEstacao = false;
+    query->checar_distProxEstacao = false;
     
     query->valores.nomeEstacao = NULL;
     query->valores.nomeLinha = NULL;
@@ -316,7 +351,6 @@ void atualizarContadoresCabecalho(FILE* bin)
     }
 
     // é.... (só assim pra passar nos testes)
-    qtd_pares--;
 
     // grava valores atualizados no cabeçalho
     fseek(bin, 9, SEEK_SET);

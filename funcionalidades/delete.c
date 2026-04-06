@@ -6,6 +6,7 @@
 #include "busca.h"
 #include "delete.h"
 #include "manipul_arq.h"
+#include "IO.h"
 
 #define DEBUGGAR false
 
@@ -38,31 +39,19 @@ void logicaDelecao(FILE* file, int* qtd_encontrados, int* topo, long* offsets)
     free(offsets); 
 }
 
-/// @private @brief pega uma linha de entrada (M nomeCampo1 valorCampo1 ...) preenche a query (registro OQueBuscar)
-// e percorre o arquivo bin, salvando correspondência num vetor alocado de offsets
-void lerLinhaBuscaDeleta(FILE* file, int* topo)
-{
-    int m;
-    scanf("%d", &m);
+/// @private @brief transforma a função de deleção lógica em uma função callback aceitável para função de leitura
+/// @param file 
+/// @param qtd_encontrados 
+/// @param offsets 
+/// @param dados_extras 
+void wrapperLogicaDelecao(FILE* file, int qtd_encontrados, long* offsets, void* dados_extras) {
+    if (qtd_encontrados == 0 || offsets == NULL) return;
 
-    OQueBuscar oqbuscar;
+    // Converte o ponteiro genérico de volta para o tipo correto (int*)
+    int* topo = (int*) dados_extras;
 
-    // PREENCHIMENTO DA QUERY "CHECKLIST"
-    preencherQuery(&oqbuscar, m);
-    
-
-    // chama função de busca para salvar correspondencias
-    int qtd_encontrados = 0;
-    long* offsets = percorreEBuscaCorrespondencia(file, oqbuscar, &qtd_encontrados); // lembrar de liberar memória depois de usar essa função
-
-    // se achar correspondências, aplicar lógica dos ponteiros para deleção
-    if (qtd_encontrados > 0 && offsets != NULL)
-        logicaDelecao(file, &qtd_encontrados, topo, offsets);
-    
-
-    // corresponde à alocação dentro de marcadorFlag()
-    if (oqbuscar.valores.nomeEstacao) free(oqbuscar.valores.nomeEstacao);
-    if (oqbuscar.valores.nomeLinha) free(oqbuscar.valores.nomeLinha);
+    // Chama a lógica de deleção original
+    logicaDelecao(file, &qtd_encontrados, topo, offsets);
 }
 
 // -------------------- FIM FUNÇÕES PRIVADAS ------------------------------------------
@@ -80,7 +69,7 @@ void deletar(const char *nomeArquivoBin, int n) {
     fread(&topo, sizeof(int), 1, file);
     
     for (int i=0; i<n; i++) 
-        lerLinhaBuscaDeleta(file, &topo);
+        lerLinhaBusca(file, wrapperLogicaDelecao, &topo);
 
     // escreve topo atualizado
     fseek(file, 1, SEEK_SET);

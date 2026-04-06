@@ -36,6 +36,8 @@ typedef struct {
     // flags para avisar o que se está buscando quando uma busca for feita
     bool checar_codEstacao;
     bool checar_codLinha;
+    bool checar_codProxEstacao;
+    bool checar_distProxEstacao;
     bool checar_codLinhaIntegra;
     bool checar_codEstIntegra;
     bool checar_nomeEstacao;

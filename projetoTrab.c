@@ -5,6 +5,7 @@
 #include "delete.h"
 #include "busca.h"
 #include "select_all.h"
+#include "select_where.h"
 #include "update.h"
 
 #define PRINTAR_MENU false
@@ -33,6 +34,8 @@ int main() {
         return 0; // fim se não houver entrada
     }
 
+    int n;
+
     switch (funcionalidade) {
         case 1: 
             // CREATE TABLE: recebe CSV e gera o Binário
@@ -48,12 +51,13 @@ int main() {
             
         case 3:
             // SELECT C/ BUSCA: Le nome do arquivo e os n critérios de busca
-            
+            scanf("%s %d", arquivoEntrada, &n);
+            select_where(arquivoEntrada, n);
             break;
 
         case 4:
 			// DELETE: deleta N registros
-            int n; scanf("%s %d", arquivoSaida, &n);
+            scanf("%s %d", arquivoSaida, &n);
             deletar(arquivoSaida, n);
             break;
 
@@ -63,9 +67,9 @@ int main() {
 		
 		case 6:
 			// UPDATE: atualizar dados na tabela
-            int n; 
-            scanf("%s %d", arquivoSaida, &n);
-            update(arquivoSaida, n);
+            // int n; 
+            // scanf("%s %d", arquivoSaida, &n);
+            // update(arquivoSaida, n);
 			break;
 
         default:
