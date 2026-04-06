@@ -124,6 +124,35 @@ static void recontagemNomeEPares(CamposUsados* campos) {
     }
 }
 
+static bool inicializarVariaveis(CamposUsados* campo_usado)
+{
+    // usando a heap pra não estourar a memória stack, char** = matriz de char = vetor de string
+    // usa-se os nomes e não ID's porque ID's diferentes seriam contabilizados, como os ID's de estações que têm o mesmo nome mas estão em linhas diferentes
+    campo_usado->nomes_vistos = malloc(CONTADOR_MAX * sizeof(char*));
+    campo_usado->pares_vistos = malloc(2 * CONTADOR_MAX * sizeof(Par));
+    campo_usado->qtd_estacoes = 0;
+    campo_usado->qtd_pares = 0;
+
+    /* if (campo_usado->nomes_vistos == NULL || campo_usado->pares_vistos == NULL) return false;
+    return true; */
+
+    return ((campo_usado->nomes_vistos == NULL || campo_usado->pares_vistos == NULL) ? false : true);
+}
+
+
+static void gravaEFinaliza(FILE* bin, CamposUsados* campo)
+{
+    // grava valores atualizados no cabeçalho
+    fseek(bin, 9, SEEK_SET);
+    fwrite(&campo->qtd_estacoes, sizeof(int), 1, bin);
+    fwrite(&campo->qtd_pares, sizeof(int), 1, bin);
+
+    // LIBERAR MEMÓRIA ALOCADA PROS VETORES DE VISTOS
+    for (int i = 0; i < campo->qtd_estacoes; i++)
+        free(campo->nomes_vistos[i]);
+    free(campo->nomes_vistos);
+    free(campo->pares_vistos);
+}
 //  --------------- FUNÇÕES PÚBLICAS (PRINCIPAIS) -----------------------------
 
 /**
@@ -332,22 +361,6 @@ long* percorreEBuscaCorrespondencia(FILE* bin, OQueBuscar query, int* qntd_found
     return vetor_offsets;
 }
 
-
-static bool inicializarVariaveis(CamposUsados* campo_usado)
-{
-    // usando a heap pra não estourar a memória stack, char** = matriz de char = vetor de string
-    // usa-se os nomes e não ID's porque ID's diferentes seriam contabilizados, como os ID's de estações que têm o mesmo nome mas estão em linhas diferentes
-    campo_usado->nomes_vistos = malloc(CONTADOR_MAX * sizeof(char*));
-    campo_usado->pares_vistos = malloc(2 * CONTADOR_MAX * sizeof(Par));
-    campo_usado->qtd_estacoes = 0;
-    campo_usado->qtd_pares = 0;
-
-    /* if (campo_usado->nomes_vistos == NULL || campo_usado->pares_vistos == NULL) return false;
-    return true; */
-
-    return ((campo_usado->nomes_vistos == NULL || campo_usado->pares_vistos == NULL) ? false : true);
-}
-
 void atualizarContadoresCabecalho(FILE* bin)
 {
     // ---------------------- ALOCAÇÃO DE MEMÓRIA PARA VETOR DE VISTOS (ESTAÇÃO E PARES DE ESTAÇÃO) ------------------------------  
@@ -358,8 +371,7 @@ void atualizarContadoresCabecalho(FILE* bin)
     char removido;
 
     // le primeiro campo do registro de dados atual E TAMBÉM fica no loop enquanto ainda der pra ler removido
-    while (fread(&removido, sizeof(char), 1, bin) == 1)
-    {   
+    while (fread(&removido, sizeof(char), 1, bin) == 1) {   
         // considera apenas registros não removidos
         if (removido == '0') {             
             leituraCamposParaAtualizar(bin, &campo_usado);
@@ -374,14 +386,5 @@ void atualizarContadoresCabecalho(FILE* bin)
         }
     }
 
-    // grava valores atualizados no cabeçalho
-    fseek(bin, 9, SEEK_SET);
-    fwrite(&campo_usado.qtd_estacoes, sizeof(int), 1, bin);
-    fwrite(&campo_usado.qtd_pares, sizeof(int), 1, bin);
-
-    // LIBERAR MEMÓRIA ALOCADA PROS VETORES DE VISTOS
-    for (int i = 0; i < campo_usado.qtd_estacoes; i++)
-        free(campo_usado.nomes_vistos[i]);
-    free(campo_usado.nomes_vistos);
-    free(campo_usado.pares_vistos);
+    gravaEFinaliza(bin, &campo_usado);
 }
