@@ -1,3 +1,6 @@
+// Erik Min Soo Chung   - 15450334
+// João Pedro Neves     -
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -33,6 +36,8 @@ int main() {
         return 0; // fim se não houver entrada
     }
 
+    int n; 
+
     switch (funcionalidade) {
         case 1: 
             // CREATE TABLE: recebe CSV e gera o Binário
@@ -53,7 +58,7 @@ int main() {
 
         case 4:
 			// DELETE: deleta N registros
-            int n; scanf("%s %d", arquivoSaida, &n);
+            scanf("%s %d", arquivoSaida, &n);
             deletar(arquivoSaida, n);
             break;
 
@@ -63,9 +68,8 @@ int main() {
 		
 		case 6:
 			// UPDATE: atualizar dados na tabela
-            int n; 
             scanf("%s %d", arquivoSaida, &n);
-            update(arquivoSaida, n);
+            update((char*)arquivoSaida, n);
 			break;
 
         default:
