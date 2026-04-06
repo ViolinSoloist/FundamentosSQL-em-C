@@ -60,6 +60,7 @@ void deletar(const char *nomeArquivoBin, int n) {
     
     // rotina ao abrir arquivo binário rb+
     FILE* file = abrirVerificarInconsistentar(nomeArquivoBin);
+    if (file == NULL) return;
 
     // salva o que está no topo (necessário para deleção)
     int topo;

@@ -13,6 +13,7 @@
 void select_all(const char* nomeArquivoBin){
     // rotina ao abrir arquivo binário rb+
     FILE* file = abrirVerificarInconsistentar(nomeArquivoBin);
+    if (file == NULL) return;
 
 
     int existe_registro = false;

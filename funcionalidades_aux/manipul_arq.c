@@ -7,7 +7,7 @@ FILE* abrirVerificarInconsistentar(const char* nomeArqBin)
 {
     FILE* file = fopen(nomeArqBin, "rb+");
     if (file == NULL) {
-        fprintf(stderr, "Falha no processamento do arquivo.\n");
+        printf("Falha no processamento do arquivo.\n");
         return NULL;
     }
     
@@ -15,7 +15,7 @@ FILE* abrirVerificarInconsistentar(const char* nomeArqBin)
     char status;
     fread(&status, sizeof(char), 1, file);
     if (status == '0') {
-        fprintf(stderr, "Falha no processamento do arquivo.\n");
+        printf("Falha no processamento do arquivo.\n");
         fclose(file);
         return NULL;
     }

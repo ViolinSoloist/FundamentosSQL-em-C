@@ -34,6 +34,7 @@ void acaoImprimirRegistros(FILE* file, int qtd_encontrados, long* offsets, void*
 void select_where(const char* nomeArquivoBin, int numeroBuscas){
 
     FILE* file = abrirVerificarInconsistentar(nomeArquivoBin);
+    if (file == NULL) return;
     
     for (int i = 0; i < numeroBuscas; i++){
         lerLinhaBusca(file, acaoImprimirRegistros, NULL);
