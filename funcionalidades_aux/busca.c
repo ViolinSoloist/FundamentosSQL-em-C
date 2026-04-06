@@ -11,18 +11,6 @@
 #define CONTADOR_MAX 1000
 #define MAX_NOMECAMPO 69
 
-// struct contendo todos os campos/variáveis que serão usados (para evitar chamada de funções passando dezenas de argumentos)
-typedef struct {
-    char** nomes_vistos;
-    char bufferNome[69];
-    Par* pares_vistos;
-    int qtd_estacoes;
-    int qtd_pares;
-    int tamNomeEstacao;
-    int codEstacao;
-    int codProxEstacao;
-} CamposUsados;
-
 /// ---------------- FUNÇÕES PRIVADAS AUXILIARES ----------------------
 
 /**
