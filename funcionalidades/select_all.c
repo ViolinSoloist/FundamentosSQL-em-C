@@ -61,7 +61,7 @@ void select_all(const char* nomeArquivoBin){
     }
 
     if (!existe_registro)
-        fprintf(stderr, "Registro inexistente\n");
+        printf("Registro inexistente\n");
 
     finalizarArquivo(file, false);
 }

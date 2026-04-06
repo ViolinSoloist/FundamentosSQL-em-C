@@ -190,7 +190,7 @@ void create_table(const char *nomeArquivoCSV, const char *nomeArquivoBin)
 
     // verificação
     if (csv == NULL || bin == NULL) {
-        fprintf(stderr, "Falha no processamento do arquivo.\n");
+        printf("Falha no processamento do arquivo.\n");
         if (csv) fclose(csv);
         if (bin) fclose(bin);
         return;
