@@ -13,11 +13,6 @@
 
 // struct contendo todos os campos/variáveis que serão usados (para evitar chamada de funções passando dezenas de argumentos)
 typedef struct {
-    int origem;
-    int destino;
-} Par;
-
-typedef struct {
     char** nomes_vistos;
     char bufferNome[69];
     Par* pares_vistos;
@@ -84,7 +79,7 @@ static void leituraCamposParaAtualizar(FILE* bin, CamposUsados* campos) {
     fseek(bin, 12, SEEK_CUR);
 
     // leitura do tamanho + nome (estação)
-    fread(campos->tamNomeEstacao, sizeof(int), 1, bin);
+    fread(&campos->tamNomeEstacao, sizeof(int), 1, bin);
 
     
     if (campos->tamNomeEstacao > 0) {
