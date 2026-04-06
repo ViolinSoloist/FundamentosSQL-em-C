@@ -6,31 +6,10 @@
 #include "estruturas.h" 
 #include "fornecidas.h"
 #include "manipul_arq.h"
+#include "IO.h"
 
 #define N_MAX_NAMES 1000
 #define LENGTH_MAX_NAMES 100
-
-// strsep versao windows (temporário) (por algum motivo, strsep não funciona mesmo com #include <string.h> ¯\_(ツ)_/¯)
-char *strsep(char **stringp, const char *delim) {
-    char *start = *stringp;
-    char *p;
-    
-    if (start == NULL) {
-        return NULL;
-    }
-    
-    // procura o delimitador
-    p = strpbrk(start, delim);
-    if (p) {
-        *p = '\0'; 
-        *stringp = p + 1; 
-    } else {
-        *stringp = NULL; // fim da linha
-    }
-    
-    return start;
-}
-
 
 /// @private @brief inicializa a escrita de dados no arquivo bin, começando com o registro de cabeçalho
 static void escreveCabecarioBin(bool seek_inicio, FILE* bin, char status, int proxRRN, int nroEstacoes, int nroParesEstacao)
@@ -54,53 +33,6 @@ static void escreveCabecarioBin(bool seek_inicio, FILE* bin, char status, int pr
         fwrite(&nroEstacoes, sizeof(int), 1, bin);
         fwrite(&nroParesEstacao, sizeof(int), 1, bin);
     }
-}
-
-/// @private @brief pega os dados do csv pra salvar num registro intermediário, ai usa esse registro pra escrever no binário
-// daria pra escrever diretamente pegando do csv, mas não consegui achar uma forma de fazer isso sem ficar bagunçado, confuso e desorganizado)
-static void salvaDadosCSVNoRegistro(Registro* temporario, char* linha_entrada_csv) 
-{   
-    // total é a linha inteira, após primeira execução de strsep, pedaco = tudo até a primeira virgula, total = todo restante
-    char *total = linha_entrada_csv;
-    char *pedaco;
-    
-    pedaco = strsep(&total, ",");
-    temporario->codEstacao = atoi(pedaco);
-
-    pedaco = strsep(&total, ",");
-    if (pedaco && *pedaco) {
-        temporario->nomeEstacao = malloc(strlen(pedaco) + 1);
-        strcpy(temporario->nomeEstacao, pedaco);
-    } else {
-        // se estiver vazio, aloca uma string vazia
-        temporario->nomeEstacao = malloc(1);
-        temporario->nomeEstacao[0] = '\0';
-    }
-
-    pedaco = strsep(&total, ",");
-    temporario->codLinha = (pedaco && *pedaco) ? atoi(pedaco) : -1;
-
-    pedaco = strsep(&total, ",");
-    if (pedaco && *pedaco) {
-        temporario->nomeLinha = malloc(strlen(pedaco) + 1);
-        strcpy(temporario->nomeLinha, pedaco);
-    } else {
-        temporario->nomeLinha = malloc(1);
-        temporario->nomeLinha[0] = '\0';
-    }
-
-    pedaco = strsep(&total, ",");
-    temporario->codProxEstacao = (pedaco && *pedaco) ? atoi(pedaco) : -1;
-
-    pedaco = strsep(&total, ",");
-    temporario->distProxEstacao = (pedaco && *pedaco) ? atoi(pedaco) : -1;
-
-    pedaco = strsep(&total, ",");
-    temporario->codLinhaIntegra = (pedaco && *pedaco) ? atoi(pedaco) : -1;
-
-    pedaco = strsep(&total, ",");
-    temporario->codEstIntegra = (pedaco && *pedaco) ? atoi(pedaco) : -1;
-
 }
 
 /// @private
@@ -140,48 +72,6 @@ static void contarEstacoesEPares(Registro* temporario, char* nomesVistos[], int*
     }
 }
 
-/// @private @brief pega todas as coisas salvas na struct Registro buffer (copiadas do csv) e escreve no arquivo binario
-static void gravarRegistroBin(Registro* temporario, FILE* bin, char removido, int proxLista, int* proxRRN)
-{
-    // gravação dos dados fixos
-    fwrite(&removido, sizeof(char), 1, bin);
-    fwrite(&proxLista, sizeof(int), 1, bin);
-    fwrite(&temporario->codEstacao, sizeof(int), 1, bin);
-    fwrite(&temporario->codLinha, sizeof(int), 1, bin);
-    fwrite(&temporario->codProxEstacao, sizeof(int), 1, bin);
-    fwrite(&temporario->distProxEstacao, sizeof(int), 1, bin);
-    fwrite(&temporario->codLinhaIntegra, sizeof(int), 1, bin);
-    fwrite(&temporario->codEstIntegra, sizeof(int), 1, bin);
-
-    int bytesEscritos = 29; // 1 char + (7 ints * 4 bytes)
-
-    // dados variaveis
-    
-    // nao nulo
-    int tamNomeEstacao = strlen(temporario->nomeEstacao);
-    fwrite(&tamNomeEstacao, sizeof(int), 1, bin);
-    fwrite(temporario->nomeEstacao, sizeof(char), tamNomeEstacao, bin); // sem o '\0'
-    bytesEscritos += 4 + tamNomeEstacao; 
-
-
-    int tamNomeLinha = strlen(temporario->nomeLinha);
-    fwrite(&tamNomeLinha, sizeof(int), 1, bin); 
-    if (tamNomeLinha > 0) { 
-        // escreve se existir, se não vira lixo
-        fwrite(temporario->nomeLinha, sizeof(char), tamNomeLinha, bin); 
-    }
-    bytesEscritos += 4 + tamNomeLinha; 
-
-    // preenchimento do restante com lixo
-    char lixo = '$';
-    while (bytesEscritos < 80) {
-        fwrite(&lixo, sizeof(char), 1, bin);
-        bytesEscritos++;
-    }
-    
-    // próximo registro até acabar
-    (*proxRRN)++;
-}
 
 void create_table(const char *nomeArquivoCSV, const char *nomeArquivoBin)
 {
@@ -234,7 +124,7 @@ void create_table(const char *nomeArquivoCSV, const char *nomeArquivoBin)
 
         // --------------------------------------------- SALVA DADOS DO CSV EM UM REGISTRO TEMPORÁRIO (BUFFER) -------------------------------------
         Registro temporario;
-        salvaDadosCSVNoRegistro(&temporario, linha);
+        salvaDadosNoRegistro(&temporario, linha);
         
         // ---------------- CONTAGEM DE ESTAÇÕES E PARES -----------------------
         contarEstacoesEPares(&temporario, nomesVistos, &totalEstacoes, paresVistos, &totalPares);
@@ -243,7 +133,8 @@ void create_table(const char *nomeArquivoCSV, const char *nomeArquivoBin)
         // setup dados fixos 
         char removido = '0'; // não removido
         int proxLista = -1;  // RRN do próximo removido (-1 inicial)
-        gravarRegistroBin(&temporario, bin, removido, proxLista, &proxRRN);
+        gravarRegistroBin(&temporario, bin, removido, proxLista);
+        proxRRN++;
 
         // liberar memória dos campos variáveis do registro temporário ao fim do uso
         free(temporario.nomeEstacao);

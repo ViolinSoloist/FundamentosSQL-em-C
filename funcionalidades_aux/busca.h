@@ -41,7 +41,7 @@ long* percorreEBuscaCorrespondencia(FILE* bin, OQueBuscar query, int* qtd_encont
 void atualizarContadoresCabecalho(FILE* bin);
 
 /**
- * @private função auxiliar, le o registro atual do arq bin e copia os dados pra struct Registro
+ * @brief função auxiliar, le o registro atual do arq bin e copia os dados pra struct Registro
  * recebe ponteiro para @param regAtual e o arquivo @param bin
  */
 void binToStruct(Registro* regAtual, FILE* bin);
