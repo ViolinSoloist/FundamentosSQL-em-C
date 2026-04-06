@@ -35,21 +35,25 @@ char *strsep(char **stringp, const char *delim) {
 /// @private @brief inicializa a escrita de dados no arquivo bin, começando com o registro de cabeçalho
 static void escreveCabecarioBin(bool seek_inicio, FILE* bin, char status, int proxRRN, int nroEstacoes, int nroParesEstacao)
 {
-    // CABEÇALHO 
-    int topo = -1;              // stack removidos vazia
-    
-    // se for segunda vez escrevendo no cabeçalho, tem que voltar pro inicio
-    if (seek_inicio) fseek(bin, 0, SEEK_SET);
-
-    // escrever campo a campo para evitar problemas com padding
-    fwrite(&status, sizeof(char), 1, bin);
-    if (!seek_inicio) { // se for a segunda vez escrevendo no cabeçalho, pula topo
+    if (!seek_inicio) {
+        // primeira passada: escreve tudo do na ordem
+        int topo = -1;
+        fseek(bin, 0, SEEK_SET);
+        fwrite(&status, sizeof(char), 1, bin);
         fwrite(&topo, sizeof(int), 1, bin);
-        fseek(bin, 5, SEEK_SET); 
+        fwrite(&proxRRN, sizeof(int), 1, bin);
+        fwrite(&nroEstacoes, sizeof(int), 1, bin);
+        fwrite(&nroParesEstacao, sizeof(int), 1, bin);
+    } else {
+        // segunda passada: atualiza o que mudou, mantem topo intacto, precisa de fseek
+        fseek(bin, 0, SEEK_SET);
+        fwrite(&status, sizeof(char), 1, bin);
+        
+        fseek(bin, 5, SEEK_SET); // Pula o 'topo' (-1) que já está no arquivo
+        fwrite(&proxRRN, sizeof(int), 1, bin);
+        fwrite(&nroEstacoes, sizeof(int), 1, bin);
+        fwrite(&nroParesEstacao, sizeof(int), 1, bin);
     }
-    fwrite(&proxRRN, sizeof(int), 1, bin);
-    fwrite(&nroEstacoes, sizeof(int), 1, bin);
-    fwrite(&nroParesEstacao, sizeof(int), 1, bin);
 }
 
 /// @private @brief pega os dados do csv pra salvar num registro intermediário, ai usa esse registro pra escrever no binário
@@ -100,19 +104,23 @@ static void salvaDadosCSVNoRegistro(Registro* temporario, char* linha_entrada_cs
 }
 
 /// @private
-static void contarEstacoesEPares(Registro* temporario, int idsVistos[], int* totalEstacoes, Par paresVistos[], int* totalPares)
+static void contarEstacoesEPares(Registro* temporario, char* nomesVistos[], int* totalEstacoes, Par paresVistos[], int* totalPares)
 {
-    // contagem estações únicas
-    bool estacaoJaExiste = false;
-    for (int i = 0; i < (*totalEstacoes); i++) {
-        if (idsVistos[i] == temporario->codEstacao) {
-            estacaoJaExiste = true;
-            break;
+    // contagem estações únicas (pelo nome)
+    if (strlen(temporario->nomeEstacao) > 0) {
+        bool estacaoJaExiste = false;
+        for (int i = 0; i < (*totalEstacoes); i++) {
+            if (!strcmp(nomesVistos[i], temporario->nomeEstacao)) {
+                estacaoJaExiste = true;
+                break;
+            }
         }
-    }
-    if (!estacaoJaExiste) {
-        idsVistos[*totalEstacoes] = temporario->codEstacao;
-        (*totalEstacoes)++;
+        if (!estacaoJaExiste) {
+            // aloca espaço (no primeiro index não ocupado do vetor de nomes) suficente para o nome
+            nomesVistos[*totalEstacoes] = malloc(strlen(temporario->nomeEstacao) + 1);
+            strcpy(nomesVistos[*totalEstacoes], temporario->nomeEstacao);
+            (*totalEstacoes)++;
+        }
     }
 
     // contagem de pares
@@ -182,7 +190,7 @@ void create_table(const char *nomeArquivoCSV, const char *nomeArquivoBin)
 
     // verificação
     if (csv == NULL || bin == NULL) {
-        fprintf(stderr, "Falha no processamento do arquivo.\n");
+        printf("Falha no processamento do arquivo.\n");
         if (csv) fclose(csv);
         if (bin) fclose(bin);
         return;
@@ -204,8 +212,8 @@ void create_table(const char *nomeArquivoCSV, const char *nomeArquivoBin)
 
     // ----- inicialização de variáveis/estruturas para guardar contagem de estações e pares -------
 
-    // contagem de pares por ID distintos
-    int idsVistos[2000];
+    // contagem de pares por nomes distintos (não pode ser ID porque contaria estações com mesmo nome mas em linhas diferentes (tipo luz, que faz parte de 4 linhas?))
+    char* nomesVistos[2000];
     int totalEstacoes = 0;
     
     Par paresVistos[5000];
@@ -229,7 +237,7 @@ void create_table(const char *nomeArquivoCSV, const char *nomeArquivoBin)
         salvaDadosCSVNoRegistro(&temporario, linha);
         
         // ---------------- CONTAGEM DE ESTAÇÕES E PARES -----------------------
-        contarEstacoesEPares(&temporario, idsVistos, &totalEstacoes, paresVistos, &totalPares);
+        contarEstacoesEPares(&temporario, nomesVistos, &totalEstacoes, paresVistos, &totalPares);
 
         // --------------- GRAVAÇÃO NO ARQUIVO BIN -------------------
         // setup dados fixos 
@@ -246,6 +254,10 @@ void create_table(const char *nomeArquivoCSV, const char *nomeArquivoBin)
     seek_inicio = true; // true quando é a segunda vez escrevendo no cabecario, e necessita de um seek
     escreveCabecarioBin(seek_inicio, bin, status, proxRRN, totalEstacoes, totalPares);
     
+    // limpeza de memória do espaço alocado pros nomes no vetor de nomes já vistos
+    for (int i = 0; i < totalEstacoes; i++) 
+        free(nomesVistos[i]);
+
     // debug
     // printf("DEBUG - proxRRN: %d | Estacoes: %d | Pares: %d\n", proxRRN, totalEstacoes, totalPares);
 
