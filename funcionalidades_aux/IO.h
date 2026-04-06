@@ -2,6 +2,7 @@
 #define PRINT_H
 
 #include "estruturas.h"
+#include <stdio.h>
 
 typedef void (*AcaoPosBusca)(FILE* file, int qtd_encontrados, long* offsets, void* dados_extras);
 
