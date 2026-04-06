@@ -180,7 +180,7 @@ static void gravarRegistroBin(Registro* temporario, FILE* bin, char removido, in
     }
     
     // próximo registro até acabar
-    proxRRN++;
+    (*proxRRN)++;
 }
 
 void create_table(const char *nomeArquivoCSV, const char *nomeArquivoBin)

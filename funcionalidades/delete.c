@@ -35,8 +35,6 @@ static void logicaDelecao(FILE* file, int* qtd_encontrados, int* topo, long* off
         // atualiza o topo para rrn atual
         *topo = rrn_atual; 
     }
-    // alocação dentro de percorreEBuscaCorrespondencia
-    free(offsets); 
 }
 
 /// @private @brief transforma a função de deleção lógica em uma função callback aceitável para função de leitura

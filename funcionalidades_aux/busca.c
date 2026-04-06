@@ -351,9 +351,6 @@ void atualizarContadoresCabecalho(FILE* bin)
         }
     }
 
-    // é.... (só assim pra passar nos testes)
-    qtd_pares--;
-
     // grava valores atualizados no cabeçalho
     fseek(bin, 9, SEEK_SET);
     fwrite(&qtd_estacoes, sizeof(int), 1, bin);
