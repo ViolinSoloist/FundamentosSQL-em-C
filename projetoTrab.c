@@ -72,9 +72,9 @@ int main() {
 			break;
 		
 		case 6:
-			// // UPDATE: atualizar dados na tabela
-            // scanf("%s %d", arquivoSaida, &n);
-            // update((char*)arquivoSaida, n);
+			// UPDATE: atualizar dados na tabela
+            scanf("%s %d", arquivoEntrada, &n);
+            update(arquivoEntrada, n);
 			break;
 
         default:

@@ -149,25 +149,35 @@ void gravarRegistroBin(Registro* temporario, FILE* bin, char removido, int proxL
     fwrite(&temporario->codEstIntegra, sizeof(int), 1, bin);
 
     int bytesEscritos = 29; // 1 char + (7 ints * 4 bytes)
-
-    // dados variaveis
     
-    // nao nulo
-    int tamNomeEstacao = strlen(temporario->nomeEstacao);
+    // --- dados variaveis ---
+    
+    // Tratamento seguro para Nome da Estação
+    int tamNomeEstacao = 0;
+    if (temporario->nomeEstacao != NULL) {
+        tamNomeEstacao = strlen(temporario->nomeEstacao);
+    }
+    
     fwrite(&tamNomeEstacao, sizeof(int), 1, bin);
-    fwrite(temporario->nomeEstacao, sizeof(char), tamNomeEstacao, bin); // sem o '\0'
+    if (tamNomeEstacao > 0) {
+        fwrite(temporario->nomeEstacao, sizeof(char), tamNomeEstacao, bin); // sem o '\0'
+    }
     bytesEscritos += 4 + tamNomeEstacao; 
 
 
-    int tamNomeLinha = strlen(temporario->nomeLinha);
+    // Tratamento seguro para Nome da Linha
+    int tamNomeLinha = 0;
+    if (temporario->nomeLinha != NULL) {
+        tamNomeLinha = strlen(temporario->nomeLinha);
+    }
+    
     fwrite(&tamNomeLinha, sizeof(int), 1, bin); 
     if (tamNomeLinha > 0) { 
-        // escreve se existir, se não vira lixo
         fwrite(temporario->nomeLinha, sizeof(char), tamNomeLinha, bin); 
     }
     bytesEscritos += 4 + tamNomeLinha; 
 
-    // preenchimento do restante com lixo
+    // --- preenchimento do restante com lixo ---
     char lixo = '$';
     while (bytesEscritos < 80) {
         fwrite(&lixo, sizeof(char), 1, bin);
@@ -180,37 +190,37 @@ void gravarRegistroBin(Registro* temporario, FILE* bin, char removido, int proxL
 void lerRegistro(Registro* temp){
     char buffer[200]; // Buffer temporário para ler qualquer campo
 
-    // 1. codEstacao
+    // codEstacao
     ScanQuoteString(buffer);
     temp->codEstacao = (strcmp(buffer, "") == 0) ? -1 : atoi(buffer);
 
-    // 2. nomeEstacao
+    // nomeEstacao
     ScanQuoteString(buffer);
     temp->nomeEstacao = malloc(strlen(buffer) + 1);
     strcpy(temp->nomeEstacao, buffer);
 
-    // 3. codLinha
+    // codLinha
     ScanQuoteString(buffer);
     temp->codLinha = (strcmp(buffer, "") == 0) ? -1 : atoi(buffer);
 
-    // 4. nomeLinha
+    // nomeLinha
     ScanQuoteString(buffer);
     temp->nomeLinha = malloc(strlen(buffer) + 1);
     strcpy(temp->nomeLinha, buffer);
 
-    // 5. codProxEstacao
+    // codProxEstacao
     ScanQuoteString(buffer);
     temp->codProxEstacao = (strcmp(buffer, "") == 0) ? -1 : atoi(buffer);
 
-    // 6. distProxEstacao
+    // distProxEstacao
     ScanQuoteString(buffer);
     temp->distProxEstacao = (strcmp(buffer, "") == 0) ? -1 : atoi(buffer);
 
-    // 7. codLinhaIntegra
+    // codLinhaIntegra
     ScanQuoteString(buffer);
     temp->codLinhaIntegra = (strcmp(buffer, "") == 0) ? -1 : atoi(buffer);
 
-    // 8. codEstIntegra
+    // codEstIntegra
     ScanQuoteString(buffer);
     temp->codEstIntegra = (strcmp(buffer, "") == 0) ? -1 : atoi(buffer);
 }

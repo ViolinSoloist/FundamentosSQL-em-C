@@ -78,30 +78,41 @@ void binToStruct(Registro* regAtual, FILE* bin) {
     
     int bytes_lidos = 29; // 1 char  + 7*4
 
-    // acho que isso dá pra usar vetor estático, pra evitar malloc
-    static char bufferEstacao[69] = ""; 
-    static char bufferLinha[69] = "";
-
+    // Leitura do Nome da Estação
     fread(&regAtual->tamNomeEstacao, sizeof(int), 1, bin);
     bytes_lidos += 4;
 
-    // se (tamanho > 0) => existe nome
     if (regAtual->tamNomeEstacao > 0) {
-        fread(bufferEstacao, sizeof(char), regAtual->tamNomeEstacao, bin);
-        bufferEstacao[regAtual->tamNomeEstacao] = '\0';
+        // Aloca o tamanho exato + 1 para o '\0'
+        regAtual->nomeEstacao = malloc(regAtual->tamNomeEstacao + 1);
+        
+        // Lê do arquivo direto para a memória alocada
+        fread(regAtual->nomeEstacao, sizeof(char), regAtual->tamNomeEstacao, bin);
+        regAtual->nomeEstacao[regAtual->tamNomeEstacao] = '\0';
+        
         bytes_lidos += regAtual->tamNomeEstacao;
+    } else {
+        // Garante que o ponteiro fique NULL se não houver nome
+        regAtual->nomeEstacao = NULL; 
     }
-    regAtual->nomeEstacao = bufferEstacao; // aponta nomeEstacao da struct para o buffer local, em vez de alocar dinamicamente
 
+    // Leitura do Nome da Linha
     fread(&regAtual->tanNomeLinha, sizeof(int), 1, bin);
     bytes_lidos += 4;
-    if (regAtual->tanNomeLinha > 0) {
-        fread(bufferLinha, sizeof(char), regAtual->tanNomeLinha, bin);
-        bufferLinha[regAtual->tanNomeLinha] = '\0';
-        bytes_lidos += regAtual->tanNomeLinha;
-    }
-    regAtual->nomeLinha = bufferLinha;
     
+    if (regAtual->tanNomeLinha > 0) {
+        // Aloca o tamanho exato + 1 para o '\0'
+        regAtual->nomeLinha = malloc(regAtual->tanNomeLinha + 1);
+        
+        // Lê do arquivo direto para a memória alocada
+        fread(regAtual->nomeLinha, sizeof(char), regAtual->tanNomeLinha, bin);
+        regAtual->nomeLinha[regAtual->tanNomeLinha] = '\0';
+        
+        bytes_lidos += regAtual->tanNomeLinha;
+    } else {
+        // Garante que o ponteiro fique NULL se não houver nome
+        regAtual->nomeLinha = NULL;
+    }
     // pular lixo
     fseek(bin, 80 - bytes_lidos, SEEK_CUR);
 }
@@ -317,7 +328,7 @@ void atualizarContadoresCabecalho(FILE* bin)
                 }
             }
 
-            // se não achar a estação no vetor de estações vistas, e ela existir, adiciona o nome ao vetor de nomes vistos e  incrimenta
+            // se não achar a estação no vetor de estações vistas, e ela existir, adiciona o nome ao vetor de nomes vistos e incrimenta
             if (!achouEstacao && tamNomeEstacao > 0) {
                 nomes_vistos[qtd_estacoes] = malloc(tamNomeEstacao + 1);
                 strcpy(nomes_vistos[qtd_estacoes], bufferNome);

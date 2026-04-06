@@ -43,7 +43,7 @@ void logicaInsercao(FILE* file){
 
     // Le a entrada para o registro temporário
     Registro temp;
-    lerRegistro(&temp);
+    lerRegistro(&temp); // LER REGISTRO ALOCA NOME DINAMICO -> TEM QUE LIBERAR MEMORIA DEPOIS
 
     // Reposiciona para a posição onde será a inserção
     fseek(file, byteOffset, SEEK_SET);
