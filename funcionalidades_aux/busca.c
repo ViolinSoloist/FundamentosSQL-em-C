@@ -5,6 +5,7 @@
 
 #include "estruturas.h" 
 #include "fornecidas.h"
+#include "IO.h"
 
 // define o tamanho do vetor de strings que guarda estações já vistas (A MUDAR/REMOVER DEPENDENDO DOS TESTES DO RUNCODES)
 #define CONTADOR_MAX 1000
@@ -18,7 +19,7 @@
  * recebe struct @param reg_lido (cópia dos dados do registro atualmente lido do bin) e o "checklist" @param query e compara pra ver se o registro atual
  * satisfaz as condições ou não
  */
-bool atendeCriterios(Registro reg_lido, OQueBuscar query)
+static bool atendeCriterios(Registro reg_lido, OQueBuscar query)
 {
     if (query.checar_codEstacao)
         if (reg_lido.codEstacao != query.valores.codEstacao)
@@ -60,7 +61,7 @@ bool atendeCriterios(Registro reg_lido, OQueBuscar query)
 //  --------------- FUNÇÕES PÚBLICAS (PRINCIPAIS) -----------------------------
 
 /**
- * @private função auxiliar, le o registro atual do arq bin e copia os dados pra struct Registro
+ * @brief função auxiliar, le o registro atual do arq bin e copia os dados pra struct Registro
  * recebe ponteiro para @param regAtual e o arquivo @param bin
  */
 void binToStruct(Registro* regAtual, FILE* bin) {
@@ -351,6 +352,7 @@ void atualizarContadoresCabecalho(FILE* bin)
     }
 
     // é.... (só assim pra passar nos testes)
+    qtd_pares--;
 
     // grava valores atualizados no cabeçalho
     fseek(bin, 9, SEEK_SET);

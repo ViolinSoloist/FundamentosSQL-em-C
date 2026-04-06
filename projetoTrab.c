@@ -1,3 +1,6 @@
+// Erik Min Soo Chung   - 15450334
+// João Pedro Neves     -
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -67,9 +70,8 @@ int main() {
 		
 		case 6:
 			// UPDATE: atualizar dados na tabela
-            // int n; 
-            // scanf("%s %d", arquivoSaida, &n);
-            // update(arquivoSaida, n);
+            scanf("%s %d", arquivoSaida, &n);
+            update((char*)arquivoSaida, n);
 			break;
 
         default:

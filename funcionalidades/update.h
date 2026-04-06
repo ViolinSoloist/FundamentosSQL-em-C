@@ -3,6 +3,6 @@
 
 #include <stdio.h>
 
-void update(FILE* nomeArquivoBin, int n);
+void update(const char* nomeArquivoBin, int n);
 
 #endif

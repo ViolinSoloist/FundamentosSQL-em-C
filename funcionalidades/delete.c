@@ -13,7 +13,7 @@
 // ----------------- FUNÇÕES AUXILIARES/PRIVADAS --------------------------
 
 /// @private @brief aplica lógica de ponteiros para deleção (topo e proxRRN)
-void logicaDelecao(FILE* file, int* qtd_encontrados, int* topo, long* offsets)
+static void logicaDelecao(FILE* file, int* qtd_encontrados, int* topo, long* offsets)
 {
     // itera por todos os offsets que satisfizeram a busca
     for (int k=0; k<(*qtd_encontrados); k++)
