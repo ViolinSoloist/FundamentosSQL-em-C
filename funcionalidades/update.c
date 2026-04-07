@@ -30,8 +30,8 @@ void Le2LinhasBuscaEUpdate(FILE* file)
     for (int i = 0; i < qtd_encontrados; i++){
         Registro temp = {0};
 
-        fseek(file, offsets[i], SEEK_SET);
-        binToStruct(&temp, file);           // binToStruct aloca memória dinamicamente para os nomes -> N ESQUECER DE DAR FREE
+        fseek(file, offsets[i] + 1, SEEK_SET);      // busca de offsets[i] + 1 por que binToStruct começa ignorando o byte "removido"
+        binToStruct(&temp, file);                   // binToStruct aloca memória dinamicamente para os nomes -> N ESQUECER DE DAR FREE
 
         if (oqmudar.checar_codEstacao) 
             temp.codEstacao = oqmudar.valores.codEstacao;
