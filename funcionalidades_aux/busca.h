@@ -25,7 +25,7 @@ até achar o campo que esteja marcado como true (ou seja, campo que está sendo 
 Faz isso para todos os campos, e se em qualquer um deles o valor dá diferente, já "falha" o match. Se passa por todos os critérios, quer dizer que atende à busca.
 */
 
-typedef void (*AcaoPosBusca)(FILE* file, int qtd_encontrados, long* offsets, void* dados_extras);
+typedef void (*AcaoPosBusca)(FILE* file, ArgumentosCallback* args);
 
 // lê parâmetros da busca (seja pra deleção, select, etc) e marca na struct OQueBuscar os campos a serem buscados com true
 /// @attention LEMBRAR DE DAR FREE NOS CAMPOS QUE CORRESPONDEM AOS NOMES (SÃO CAMPOS ALOCADOS DINAMICAMENTE) QND TERMINAR DE USAR O REGISTRO DE QUERY
@@ -37,11 +37,10 @@ void zerarFlags(OQueBuscar* query);
 void preencherQuery(OQueBuscar* oqbuscar, int m);
 
 /**
- * retorna vetor (alocado dinamicamente) de offsets (meio que "index" no arquivo) onde houve match. (depois tem que traduzir offset pra RRN)
+ * @brief função genérica de busca, que assim que acha uma correspondência, pausa e faz um callback para executar a funcionalidade específica, depois continua normalmente)
  * @param qtd_encontrados é atualizado internamente.
- * ftell() @returns long
 */
-void percorreEBuscaCorrespondencia(FILE* bin, OQueBuscar query, AcaoPosBusca callback, void* dados_extras);
+void percorreEBuscaCorrespondencia(FILE* bin, ArgumentosCallback* args);
 
 /// @attention USAR NO FINAL DAS FUNCIONALIDADES QUE ALTERAM OS REGISTROS : INSERIR, DELETAR, ETC
 /// @brief vasculha todos os registros de dados do arq bin para contar qntd estacoes e qntd de pares de estacoes para atualizar pós delete, insert, etc

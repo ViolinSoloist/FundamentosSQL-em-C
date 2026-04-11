@@ -40,21 +40,19 @@ void lerRegistro(Registro* temp){
     temp->codEstIntegra = (strcmp(buffer, "") == 0) ? -1 : atoi(buffer);
 }
 
-void lerLinhaBusca(FILE* file, AcaoPosBusca callback, void* dados_extras){
+void lerLinhaBusca(FILE* file, ArgumentosCallback* args){
     int m;
     scanf("%d", &m);
-
-    OQueBuscar oqBuscar;
     
     // PREENCHIMENTO DA QUERY "CHECKLIST"
-    preencherQuery(&oqBuscar, m);
+    preencherQuery(&args->query, m);
 
     // chama função de busca para salvar correspondencias
-    percorreEBuscaCorrespondencia(file, oqBuscar, callback, dados_extras);
+    percorreEBuscaCorrespondencia(file, args);
 
     // corresponde à alocação dentro de marcadorFlag()
-    if (oqBuscar.valores.nomeEstacao) free(oqBuscar.valores.nomeEstacao);
-    if (oqBuscar.valores.nomeLinha) free(oqBuscar.valores.nomeLinha);
+    if (args->query.valores.nomeEstacao) free(args->query.valores.nomeEstacao);
+    if (args->query.valores.nomeLinha) free(args->query.valores.nomeLinha);
 }
 
 void mostrarRegistro(Registro* registro_lido){

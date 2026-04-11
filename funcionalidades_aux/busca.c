@@ -1,4 +1,5 @@
 #include "busca.h"
+#include <estruturas.h>
 
 // define o tamanho maximo do nome de um campo
 #define MAX_NOMECAMPO 69
@@ -47,6 +48,32 @@ static bool atendeCriterios(Registro reg_lido, OQueBuscar query)
     return true; 
 }
 
+static void comparaECallback(FILE* bin, char removido, ArgumentosCallback* args)
+{
+    // registro não removido (logicamente)
+    if (removido == '0') {            
+        Registro reg_atual;
+        binToStruct(&reg_atual, bin);
+
+        // teste de match
+        if (atendeCriterios(reg_atual, args->query)) {
+            args->qntd_found++; // Soma na quantidade de achados
+
+            callback(bin, 1, args->offset_atual, args->dados_extras);    // Chama a ação para realizar no registro
+
+            //callback pode mudar a posição do cursor, então damos um fseek fixo para o final do registro atual
+            fseek(bin, args->offset_atual + TAM_REGISTRO, SEEK_SET);
+        }
+
+        if (reg_atual.nomeEstacao) free(reg_atual.nomeEstacao);
+        if (reg_atual.nomeLinha) free(reg_atual.nomeLinha);
+
+    } else {
+        fseek(bin, TAM_REGISTRO - 1, SEEK_CUR);
+    }
+    // ao final de cada loop, é necessário avançar o cursor em 1 registro
+    args->offset_atual += TAM_REGISTRO;
+}
 
 //  --------------- FUNÇÕES PÚBLICAS (PRINCIPAIS) -----------------------------
 
@@ -153,43 +180,23 @@ void preencherQuery(OQueBuscar* oqbuscar, int m) {
 }
 
 /**
- * @brief percorre o arquivo bin e retorna um ponteiro para vetor alocado de offsets que deram "match" nos parâmetros de pesquisa
+ * @brief função genérica de busca, que ao achar correspondência, faz um callback para funcinoalidade correspondente
  * @param query é a struct que serve para marcar quais campos estão sendo procurados, além dos valores correspondentes
  */
-void percorreEBuscaCorrespondencia(FILE* bin, OQueBuscar query, AcaoPosBusca callback, void* dados_extras) {
-    int qntd_found = 0;
+void percorreEBuscaCorrespondencia(FILE* bin, ArgumentosCallback* args) {
+    args->qntd_found = 0;
 
     // pula pro início dos dados
-    fseek(bin, 17, SEEK_SET);
+    fseek(bin, OFFSET_INI_DADOS, SEEK_SET);
 
-    char removido;
+    // tomamos conta do cursor para evitar uso desnecessário de ftell()
+    args->offset_atual = OFFSET_INI_DADOS;
+
     // enquanto ainda conseguir ler o campo removido dos registros
-    while (fread(&removido, sizeof(char), 1, bin) == 1)
-    {    
-        // registro não removido (logicamente)
-        if (removido == '0') {
-            long offset = ftell(bin) - 1; // Salva o inicio do registro antes de ler
-            
-            Registro reg_atual;
-            binToStruct(&reg_atual, bin);
-            long posAposReg = ftell(bin);
-
-            // teste de match
-            if (atendeCriterios(reg_atual, query)) {
-                qntd_found++; // Soma na quantidade de achados
-                callback(bin, 1, &offset, dados_extras);    // Chama a ação para realizar no registro
-                fseek(bin, posAposReg, SEEK_SET);
-            }
-
-            if (reg_atual.nomeEstacao) free(reg_atual.nomeEstacao);
-            if (reg_atual.nomeLinha) free(reg_atual.nomeLinha);
-
-        } else {
-            fseek(bin, 79, SEEK_CUR);
-        }
-    }
+    char removido;
+    while (fread(&removido, sizeof(char), 1, bin) == 1) {comparaECallback(bin, removido, args);}
     
-    if (qntd_found == 0)
-        callback(bin, 0, NULL, dados_extras);
+    if (args->qntd_found == 0)
+        callback(bin, 0, NULL, args->dados_extras);
 }
 

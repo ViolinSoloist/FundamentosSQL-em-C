@@ -3,6 +3,10 @@
 
 #include <stdbool.h>
 
+#define OFFSET_INI_DADOS 17
+#define TAM_REGISTRO 80
+
+
 // registro de cabeçalho (início do arquivo .bin) 17 bytes
 typedef struct {
     char status;            // 0 -> inconsistente 1 -> consistente
@@ -50,7 +54,7 @@ typedef struct {
     int destino;
 } Par;
 
-// struct contendo todos os campos/variáveis que serão usados (para evitar chamada de funções passando dezenas de argumentos)
+// struct contendo todos os campos/variáveis que serão usados na atualização do cabeçalho (para evitar chamada de funções passando dezenas de argumentos)
 typedef struct {
     char** nomes_vistos;
     char bufferNome[69];
@@ -61,5 +65,13 @@ typedef struct {
     int codEstacao;
     int codProxEstacao;
 } CamposUsados;
+
+typedef struct {
+    OQueBuscar query;
+    AcaoPosBusca callback;
+    long offset_atual;
+    int qntd_found;
+    void* dados_extras;
+} ArgumentosCallback;
 
 #endif

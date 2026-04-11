@@ -50,19 +50,27 @@ static void callbackUpdate(FILE* file, int qtd_encontrados, long* offsets, void*
 }
 
 static void Le2LinhasBuscaEUpdate(FILE* file) {
+    ArgumentosCallback args;
+    
     int m; scanf("%d", &m);
-    OQueBuscar oqbuscar;
-    preencherQuery(&oqbuscar, m);
+
+    // preenche uma query do que está buscando
+    preencherQuery(&args.query, m);
 
     int p; scanf("%d", &p);
+    // preenche uma query que mostra para o que está se atualizando
     OQueBuscar oqmudar;
     preencherQuery(&oqmudar, p);
 
     // passa oqmudar como dados_extras — callback acessa via ponteiro
-    percorreEBuscaCorrespondencia(file, oqbuscar, callbackUpdate, &oqmudar);
+    args.dados_extras = &oqmudar;
+    args.callback = callbackUpdate;
+    args.offset_atual = OFFSET_INI_DADOS;
 
-    if (oqbuscar.valores.nomeEstacao) free(oqbuscar.valores.nomeEstacao);
-    if (oqbuscar.valores.nomeLinha) free(oqbuscar.valores.nomeLinha);
+    percorreEBuscaCorrespondencia(file, &args);
+
+    if (args.query.valores.nomeEstacao) free(args.query.valores.nomeEstacao);
+    if (args.query.valores.nomeLinha) free(args.query.valores.nomeLinha);
 
     if (oqmudar.valores.nomeEstacao) free(oqmudar.valores.nomeEstacao);
     if (oqmudar.valores.nomeLinha) free(oqmudar.valores.nomeLinha);

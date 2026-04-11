@@ -30,7 +30,7 @@ static void logicaDelecao(FILE* file, int* topo, long* offsets)
 /// @param qtd_encontrados 
 /// @param offsets 
 /// @param dados_extras 
-void wrapperLogicaDelecao(FILE* file, int qtd_encontrados, long* offsets, void* dados_extras) {
+static void wrapperLogicaDelecao(FILE* file, int qtd_encontrados, long* offsets, void* dados_extras) {
     if (qtd_encontrados == 0 || offsets == NULL) return;
 
     // Converte o ponteiro genérico de volta para o tipo correto (int*)
