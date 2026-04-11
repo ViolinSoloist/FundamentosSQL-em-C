@@ -1,12 +1,4 @@
-#include "stdio.h"
-#include "stdbool.h"
-
 #include "select_all.h"
-#include "estruturas.h"
-#include "busca.h"
-#include "manipul_arq.h"
-#include "IO.h"
-
 
 /// @brief Função principal de recuperação de registros
 /// @param nomeArquivoBin Arquivo binário do qual os registros serão recuperados
