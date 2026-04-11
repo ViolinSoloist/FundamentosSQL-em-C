@@ -12,7 +12,19 @@
 #include "insert.h"
 #include "update.h"
 
+#define PRINTAR_MENU false
+
 int main() { 
+    // menu de opções
+    if (PRINTAR_MENU) {
+        printf("\nEscolha uma das seguintes opções:\n");
+        printf(" 1 - CREATE TABLE\n");
+        printf(" 2 - SELECT\n");
+        printf(" 3 - SELECT WHERE\n");
+        printf(" 4 - DELETE\n");
+        printf(" 5 - INSERT INTO\n");
+        printf(" 6 - UPDATE\n");
+    }
 
     int funcionalidade;
 

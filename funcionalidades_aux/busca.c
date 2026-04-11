@@ -1,6 +1,14 @@
-#include "busca.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
 
-// define o tamanho maximo do nome de um campo
+#include "estruturas.h" 
+#include "fornecidas.h"
+#include "IO.h"
+
+// define o tamanho do vetor de strings que guarda estações já vistas (A MUDAR/REMOVER DEPENDENDO DOS TESTES DO RUNCODES)
+#define CONTADOR_MAX 1000
 #define MAX_NOMECAMPO 69
 
 /// ---------------- FUNÇÕES PRIVADAS AUXILIARES ----------------------
@@ -47,9 +55,150 @@ static bool atendeCriterios(Registro reg_lido, OQueBuscar query)
     return true; 
 }
 
+static void leituraCamposParaAtualizar(FILE* bin, CamposUsados* campos) {
+    // le e salva os campos seguintes (APENAS codEstacao e codProxEstacao SERÃO ÚTEIS, proximo e codLinha lido junto apenas porque tá no meio de tudo)
+    int proximo, codLinha;
+    fread(&proximo, sizeof(int), 1, bin);
+    fread(&campos->codEstacao, sizeof(int), 1, bin);        // necessário
+    fread(&codLinha, sizeof(int), 1, bin);
+    fread(&campos->codProxEstacao, sizeof(int), 1, bin);    // necessário
 
+    // pula distProxEstacao + codLinhaIntegra + codEstIntegra = 3*4=12 bytes
+    fseek(bin, 12, SEEK_CUR);
+
+    // leitura do tamanho + nome (estação)
+    fread(&campos->tamNomeEstacao, sizeof(int), 1, bin);
+
+    
+    if (campos->tamNomeEstacao > 0) {
+        fread(campos->bufferNome, sizeof(char), campos->tamNomeEstacao, bin);
+        campos->bufferNome[campos->tamNomeEstacao] = '\0';      // importante lembrar de adicionar '\0' no final porque no registro bin é salvo sem
+    }
+}
+
+static void recontagemNomeEPares(CamposUsados* campos) {
+    // contagem de estacoes pelo nome 
+    bool achouEstacao = false;
+    for (int i=0; i<(campos->qtd_estacoes); i++) {
+        if (!strcmp(campos->nomes_vistos[i], campos->bufferNome)) {
+            achouEstacao = true;
+            break;
+        }
+    }
+
+    // se não achar a estação no vetor de estações vistas, e ela existir, adiciona o nome ao vetor de nomes vistos e  incrimenta
+    if (!achouEstacao && campos->tamNomeEstacao > 0) {
+        campos->nomes_vistos[campos->qtd_estacoes] = malloc(campos->tamNomeEstacao + 1);
+        strcpy(campos->nomes_vistos[campos->qtd_estacoes], campos->bufferNome);
+        (campos->qtd_estacoes)++;
+    }
+
+    // contagem de pares (codEstacao -> codProxEstacao)
+    if ((campos->codProxEstacao) != -1) {
+        bool achou_par = false;
+        for (int i = 0; i < (campos->qtd_pares); i++) {
+            if (campos->pares_vistos[i].origem == (campos->codEstacao) && campos->pares_vistos[i].destino == (campos->codProxEstacao)) {
+                achou_par = true;
+                break;
+            }
+        }
+
+        // se não achou o par, faz basicamente a mesma coisa de antes: adiciona no vetor de vistos e incrementa qntd
+        if (!achou_par) {
+            campos->pares_vistos[campos->qtd_pares].origem = campos->codEstacao;
+            campos->pares_vistos[campos->qtd_pares].destino = campos->codProxEstacao;
+            (campos->qtd_pares)++;
+        }
+    }
+}
+
+static bool inicializarVariaveis(CamposUsados* campo_usado)
+{
+    // usando a heap pra não estourar a memória stack, char** = matriz de char = vetor de string
+    // usa-se os nomes e não ID's porque ID's diferentes seriam contabilizados, como os ID's de estações que têm o mesmo nome mas estão em linhas diferentes
+    campo_usado->nomes_vistos = malloc(CONTADOR_MAX * sizeof(char*));
+    campo_usado->pares_vistos = malloc(2 * CONTADOR_MAX * sizeof(Par));
+    campo_usado->qtd_estacoes = 0;
+    campo_usado->qtd_pares = 0;
+
+    /* if (campo_usado->nomes_vistos == NULL || campo_usado->pares_vistos == NULL) return false;
+    return true; */
+
+    return ((campo_usado->nomes_vistos == NULL || campo_usado->pares_vistos == NULL) ? false : true);
+}
+
+
+static void gravaEFinaliza(FILE* bin, CamposUsados* campo)
+{
+    // grava valores atualizados no cabeçalho
+    fseek(bin, 9, SEEK_SET);
+    fwrite(&campo->qtd_estacoes, sizeof(int), 1, bin);
+    fwrite(&campo->qtd_pares, sizeof(int), 1, bin);
+
+    // LIBERAR MEMÓRIA ALOCADA PROS VETORES DE VISTOS
+    for (int i = 0; i < campo->qtd_estacoes; i++)
+        free(campo->nomes_vistos[i]);
+    free(campo->nomes_vistos);
+    free(campo->pares_vistos);
+}
 //  --------------- FUNÇÕES PÚBLICAS (PRINCIPAIS) -----------------------------
 
+/**
+ * @brief função auxiliar, le o registro atual do arq bin e copia os dados pra struct Registro
+ * recebe ponteiro para @param regAtual e o arquivo @param bin
+ */
+void binToStruct(Registro* regAtual, FILE* bin) {
+    regAtual->removido = '0';
+
+    // leitura pra struct Registro dos campos fixos (28 bytes: 7 * 4 )
+    fread(&regAtual->proximo, sizeof(int), 1, bin);
+    fread(&regAtual->codEstacao, sizeof(int), 1, bin);
+    fread(&regAtual->codLinha, sizeof(int), 1, bin);
+    fread(&regAtual->codProxEstacao, sizeof(int), 1, bin);
+    fread(&regAtual->distProxEstacao, sizeof(int), 1, bin);
+    fread(&regAtual->codLinhaIntegra, sizeof(int), 1, bin);
+    fread(&regAtual->codEstIntegra, sizeof(int), 1, bin);
+    
+    int bytes_lidos = 29; // 1 char  + 7*4
+
+    // Leitura do Nome da Estação
+    fread(&regAtual->tamNomeEstacao, sizeof(int), 1, bin);
+    bytes_lidos += 4;
+
+    if (regAtual->tamNomeEstacao > 0) {
+        // Aloca o tamanho exato + 1 para o '\0'
+        regAtual->nomeEstacao = malloc(regAtual->tamNomeEstacao + 1);
+        
+        // Lê do arquivo direto para a memória alocada
+        fread(regAtual->nomeEstacao, sizeof(char), regAtual->tamNomeEstacao, bin);
+        regAtual->nomeEstacao[regAtual->tamNomeEstacao] = '\0';
+        
+        bytes_lidos += regAtual->tamNomeEstacao;
+    } else {
+        // Garante que o ponteiro fique NULL se não houver nome
+        regAtual->nomeEstacao = NULL; 
+    }
+
+    // Leitura do Nome da Linha
+    fread(&regAtual->tanNomeLinha, sizeof(int), 1, bin);
+    bytes_lidos += 4;
+    
+    if (regAtual->tanNomeLinha > 0) {
+        // Aloca o tamanho exato + 1 para o '\0'
+        regAtual->nomeLinha = malloc(regAtual->tanNomeLinha + 1);
+        
+        // Lê do arquivo direto para a memória alocada
+        fread(regAtual->nomeLinha, sizeof(char), regAtual->tanNomeLinha, bin);
+        regAtual->nomeLinha[regAtual->tanNomeLinha] = '\0';
+        
+        bytes_lidos += regAtual->tanNomeLinha;
+    } else {
+        // Garante que o ponteiro fique NULL se não houver nome
+        regAtual->nomeLinha = NULL;
+    }
+    // pular lixo
+    fseek(bin, 80 - bytes_lidos, SEEK_CUR);
+}
 
 
 // procedimento: cascata de if/elses par ver qual campo está sendo buscado (não é bonito mas eu acho que funciona)
@@ -156,8 +305,13 @@ void preencherQuery(OQueBuscar* oqbuscar, int m) {
  * @brief percorre o arquivo bin e retorna um ponteiro para vetor alocado de offsets que deram "match" nos parâmetros de pesquisa
  * @param query é a struct que serve para marcar quais campos estão sendo procurados, além dos valores correspondentes
  */
-void percorreEBuscaCorrespondencia(FILE* bin, OQueBuscar query, AcaoPosBusca callback, void* dados_extras) {
-    int qntd_found = 0;
+long* percorreEBuscaCorrespondencia(FILE* bin, OQueBuscar query, int* qntd_found) {
+    *qntd_found = 0;
+
+    // meio que um chute de quantas correspondencias vai achar. Uma gambiarra que mistura lista dinâmica com lista est\ática, para evitar tamanho fixo rígido mas para diminuir quantidade de realloc
+    // DEV NOTE: eu não sei se no runcodes vai ter um csv com mais de 200 linhas, mas se for só isso mesmo usar buffer estático
+    int capacidade_atual = 10; // futuramente, se necessário, aumentado ao dobro com realloc (mas poucas vezes, por favor não brigar comigo)
+    long* vetor_offsets = malloc(sizeof(long) * capacidade_atual); // ftell() retorna long, então precisa ser do tipo long
 
     // pula pro início dos dados
     fseek(bin, 17, SEEK_SET);
@@ -168,28 +322,57 @@ void percorreEBuscaCorrespondencia(FILE* bin, OQueBuscar query, AcaoPosBusca cal
     {    
         // registro não removido (logicamente)
         if (removido == '0') {
-            long offset = ftell(bin) - 1; // Salva o inicio do registro antes de ler
-            
             Registro reg_atual;
+            
             binToStruct(&reg_atual, bin);
-            long posAposReg = ftell(bin);
 
             // teste de match
             if (atendeCriterios(reg_atual, query)) {
-                qntd_found++; // Soma na quantidade de achados
-                callback(bin, 1, &offset, dados_extras);    // Chama a ação para realizar no registro
-                fseek(bin, posAposReg, SEEK_SET);
+                // verifica se o "chute" pra espaço foi suficiente, se não, realoca em dobro para evitar muitos reallocs
+                if (*qntd_found == capacidade_atual) {
+                    capacidade_atual *= 2; // 10, 20, 40, 80, 160, etc
+                    vetor_offsets = realloc(vetor_offsets, capacidade_atual * sizeof(long));
+                }
+
+                // salva posição
+                long pos_fim = ftell(bin);
+                vetor_offsets[*qntd_found] = pos_fim - 80; //guarda o começo do registro
+                (*qntd_found)++;
             }
 
-            if (reg_atual.nomeEstacao) free(reg_atual.nomeEstacao);
-            if (reg_atual.nomeLinha) free(reg_atual.nomeLinha);
-
         } else {
+            // se está logicamente removido, pular para próximo registro
             fseek(bin, 79, SEEK_CUR);
         }
     }
-    
-    if (qntd_found == 0)
-        callback(bin, 0, NULL, dados_extras);
+    // atualizar topo
+    return vetor_offsets;
 }
 
+void atualizarContadoresCabecalho(FILE* bin)
+{
+    // ---------------------- ALOCAÇÃO DE MEMÓRIA PARA VETOR DE VISTOS (ESTAÇÃO E PARES DE ESTAÇÃO) ------------------------------  
+    CamposUsados campo_usado;
+    inicializarVariaveis(&campo_usado);
+
+    fseek(bin, 17, SEEK_SET);
+    char removido;
+
+    // le primeiro campo do registro de dados atual E TAMBÉM fica no loop enquanto ainda der pra ler removido
+    while (fread(&removido, sizeof(char), 1, bin) == 1) {   
+        // considera apenas registros não removidos
+        if (removido == '0') {             
+            leituraCamposParaAtualizar(bin, &campo_usado);
+
+            // ITERA PELOS VETORES PRA VER SE nomeEstacao e codEstacao -> codProxEstacao JÁ ESTÃO LÁ
+            recontagemNomeEPares(&campo_usado);
+
+            // pula lixo: lido até agora: 1 (removido) + 16 (4 ints) + 12 (pulados) + 4 (tam) + tamNome = 33 + tamNome
+            fseek(bin, 80 - (33 + campo_usado.tamNomeEstacao), SEEK_CUR);
+        } else {
+            fseek(bin, 79, SEEK_CUR); // registro deletado pula)
+        }
+    }
+
+    gravaEFinaliza(bin, &campo_usado);
+}
