@@ -1,3 +1,5 @@
+.PHONY: all run clean zip
+
 MAIN = projetoTrab.c
 
 FORNECIDAS = funcoes_fornecidas/fornecidas.c
@@ -20,4 +22,7 @@ run:
 	./programaTrab
 
 clean:
-	rm -f programaTrab *.o *.bin
+	rm -f programaTrab *.o *.bin *.zip
+
+zip:
+	zip -r entrega.zip *
