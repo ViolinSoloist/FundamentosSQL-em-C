@@ -50,15 +50,7 @@ void lerLinhaBusca(FILE* file, AcaoPosBusca callback, void* dados_extras){
     preencherQuery(&oqBuscar, m);
 
     // chama função de busca para salvar correspondencias
-    int qtd_encontrados = 0;
-    long* offsets = percorreEBuscaCorrespondencia(file, oqBuscar, &qtd_encontrados); // lembrar de liberar memória depois de usar essa função
-
-    // se achar correspondências, aplicar a função callback passando os dados encontrados
-    if (callback != NULL)
-        callback(file, qtd_encontrados, offsets, dados_extras);
-        
-    // limpa memória alocada para vetor offsets
-    free(offsets);
+    percorreEBuscaCorrespondencia(file, oqBuscar, callback, dados_extras);
 
     // corresponde à alocação dentro de marcadorFlag()
     if (oqBuscar.valores.nomeEstacao) free(oqBuscar.valores.nomeEstacao);

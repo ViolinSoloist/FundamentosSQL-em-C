@@ -8,6 +8,9 @@
 
 #include "estruturas.h" 
 #include "fornecidas.h"
+#include "cabecalho.h"
+#include "serial.h"
+#include "terminal.h"
 
 /*
 esse arquivo contém o mecanismo principal de busca e varredura que outras funções (delete, update, select, etc) vão usar
@@ -21,6 +24,8 @@ Então, na hora de percorrer o arquivo bin, vai de registro em registro, e em ca
 até achar o campo que esteja marcado como true (ou seja, campo que está sendo buscado), quando acha, ve se o valor dele corresponde com a da busca.
 Faz isso para todos os campos, e se em qualquer um deles o valor dá diferente, já "falha" o match. Se passa por todos os critérios, quer dizer que atende à busca.
 */
+
+typedef void (*AcaoPosBusca)(FILE* file, int qtd_encontrados, long* offsets, void* dados_extras);
 
 // lê parâmetros da busca (seja pra deleção, select, etc) e marca na struct OQueBuscar os campos a serem buscados com true
 /// @attention LEMBRAR DE DAR FREE NOS CAMPOS QUE CORRESPONDEM AOS NOMES (SÃO CAMPOS ALOCADOS DINAMICAMENTE) QND TERMINAR DE USAR O REGISTRO DE QUERY
@@ -36,7 +41,7 @@ void preencherQuery(OQueBuscar* oqbuscar, int m);
  * @param qtd_encontrados é atualizado internamente.
  * ftell() @returns long
 */
-long* percorreEBuscaCorrespondencia(FILE* bin, OQueBuscar query, int* qtd_encontrados);
+void percorreEBuscaCorrespondencia(FILE* bin, OQueBuscar query, AcaoPosBusca callback, void* dados_extras);
 
 /// @attention USAR NO FINAL DAS FUNCIONALIDADES QUE ALTERAM OS REGISTROS : INSERIR, DELETAR, ETC
 /// @brief vasculha todos os registros de dados do arq bin para contar qntd estacoes e qntd de pares de estacoes para atualizar pós delete, insert, etc

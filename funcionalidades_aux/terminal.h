@@ -10,6 +10,8 @@
 #include "fornecidas.h"
 
 typedef void (*AcaoPosBusca)(FILE* file, int qtd_encontrados, long* offsets, void* dados_extras);
+
+void lerRegistro(Registro* temp);
 void lerLinhaBusca(FILE* file, AcaoPosBusca callback, void* dados_extras);
 void mostrarRegistro(Registro* registro_lido);
 void lerLinhaNormal(FILE* file, char* linha);

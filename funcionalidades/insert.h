@@ -10,6 +10,7 @@
 #include "busca.h"
 #include "serial.h"
 #include "cabecalho.h"
+#include "terminal.h"
 
 void insert(const char* nomeArquivoBin, int numeroLeituras);
 
