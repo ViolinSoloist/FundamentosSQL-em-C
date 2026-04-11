@@ -1,12 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "estruturas.h" 
-#include "fornecidas.h"
-#include "busca.h"
 #include "delete.h"
-#include "manipul_arq.h"
-#include "IO.h"
 
 #define DEBUGGAR false
 

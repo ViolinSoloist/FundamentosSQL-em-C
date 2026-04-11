@@ -1,11 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-
-#include "estruturas.h" 
-#include "fornecidas.h"
-#include "IO.h"
+#include "busca.h"
 
 // define o tamanho do vetor de strings que guarda estações já vistas (A MUDAR/REMOVER DEPENDENDO DOS TESTES DO RUNCODES)
 #define CONTADOR_MAX 1000
@@ -128,77 +121,8 @@ static bool inicializarVariaveis(CamposUsados* campo_usado)
 }
 
 
-static void gravaEFinaliza(FILE* bin, CamposUsados* campo)
-{
-    // grava valores atualizados no cabeçalho
-    fseek(bin, 9, SEEK_SET);
-    fwrite(&campo->qtd_estacoes, sizeof(int), 1, bin);
-    fwrite(&campo->qtd_pares, sizeof(int), 1, bin);
-
-    // LIBERAR MEMÓRIA ALOCADA PROS VETORES DE VISTOS
-    for (int i = 0; i < campo->qtd_estacoes; i++)
-        free(campo->nomes_vistos[i]);
-    free(campo->nomes_vistos);
-    free(campo->pares_vistos);
-}
 //  --------------- FUNÇÕES PÚBLICAS (PRINCIPAIS) -----------------------------
 
-/**
- * @brief função auxiliar, le o registro atual do arq bin e copia os dados pra struct Registro
- * recebe ponteiro para @param regAtual e o arquivo @param bin
- */
-void binToStruct(Registro* regAtual, FILE* bin) {
-    regAtual->removido = '0';
-
-    // leitura pra struct Registro dos campos fixos (28 bytes: 7 * 4 )
-    fread(&regAtual->proximo, sizeof(int), 1, bin);
-    fread(&regAtual->codEstacao, sizeof(int), 1, bin);
-    fread(&regAtual->codLinha, sizeof(int), 1, bin);
-    fread(&regAtual->codProxEstacao, sizeof(int), 1, bin);
-    fread(&regAtual->distProxEstacao, sizeof(int), 1, bin);
-    fread(&regAtual->codLinhaIntegra, sizeof(int), 1, bin);
-    fread(&regAtual->codEstIntegra, sizeof(int), 1, bin);
-    
-    int bytes_lidos = 29; // 1 char  + 7*4
-
-    // Leitura do Nome da Estação
-    fread(&regAtual->tamNomeEstacao, sizeof(int), 1, bin);
-    bytes_lidos += 4;
-
-    if (regAtual->tamNomeEstacao > 0) {
-        // Aloca o tamanho exato + 1 para o '\0'
-        regAtual->nomeEstacao = malloc(regAtual->tamNomeEstacao + 1);
-        
-        // Lê do arquivo direto para a memória alocada
-        fread(regAtual->nomeEstacao, sizeof(char), regAtual->tamNomeEstacao, bin);
-        regAtual->nomeEstacao[regAtual->tamNomeEstacao] = '\0';
-        
-        bytes_lidos += regAtual->tamNomeEstacao;
-    } else {
-        // Garante que o ponteiro fique NULL se não houver nome
-        regAtual->nomeEstacao = NULL; 
-    }
-
-    // Leitura do Nome da Linha
-    fread(&regAtual->tanNomeLinha, sizeof(int), 1, bin);
-    bytes_lidos += 4;
-    
-    if (regAtual->tanNomeLinha > 0) {
-        // Aloca o tamanho exato + 1 para o '\0'
-        regAtual->nomeLinha = malloc(regAtual->tanNomeLinha + 1);
-        
-        // Lê do arquivo direto para a memória alocada
-        fread(regAtual->nomeLinha, sizeof(char), regAtual->tanNomeLinha, bin);
-        regAtual->nomeLinha[regAtual->tanNomeLinha] = '\0';
-        
-        bytes_lidos += regAtual->tanNomeLinha;
-    } else {
-        // Garante que o ponteiro fique NULL se não houver nome
-        regAtual->nomeLinha = NULL;
-    }
-    // pular lixo
-    fseek(bin, 80 - bytes_lidos, SEEK_CUR);
-}
 
 
 // procedimento: cascata de if/elses par ver qual campo está sendo buscado (não é bonito mas eu acho que funciona)
@@ -349,30 +273,3 @@ long* percorreEBuscaCorrespondencia(FILE* bin, OQueBuscar query, int* qntd_found
     return vetor_offsets;
 }
 
-void atualizarContadoresCabecalho(FILE* bin)
-{
-    // ---------------------- ALOCAÇÃO DE MEMÓRIA PARA VETOR DE VISTOS (ESTAÇÃO E PARES DE ESTAÇÃO) ------------------------------  
-    CamposUsados campo_usado;
-    inicializarVariaveis(&campo_usado);
-
-    fseek(bin, 17, SEEK_SET);
-    char removido;
-
-    // le primeiro campo do registro de dados atual E TAMBÉM fica no loop enquanto ainda der pra ler removido
-    while (fread(&removido, sizeof(char), 1, bin) == 1) {   
-        // considera apenas registros não removidos
-        if (removido == '0') {             
-            leituraCamposParaAtualizar(bin, &campo_usado);
-
-            // ITERA PELOS VETORES PRA VER SE nomeEstacao e codEstacao -> codProxEstacao JÁ ESTÃO LÁ
-            recontagemNomeEPares(&campo_usado);
-
-            // pula lixo: lido até agora: 1 (removido) + 16 (4 ints) + 12 (pulados) + 4 (tam) + tamNome = 33 + tamNome
-            fseek(bin, 80 - (33 + campo_usado.tamNomeEstacao), SEEK_CUR);
-        } else {
-            fseek(bin, 79, SEEK_CUR); // registro deletado pula)
-        }
-    }
-
-    gravaEFinaliza(bin, &campo_usado);
-}

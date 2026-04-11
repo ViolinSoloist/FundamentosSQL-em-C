@@ -1,76 +1,7 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-
-#include "estruturas.h" 
-#include "fornecidas.h"
-#include "manipul_arq.h"
-#include "IO.h"
+#include "create_table.h"
 
 #define N_MAX_NAMES 1000
 #define LENGTH_MAX_NAMES 100
-
-/// @private @brief inicializa a escrita de dados no arquivo bin, começando com o registro de cabeçalho
-static void escreveCabecarioBin(bool seek_inicio, FILE* bin, char status, int proxRRN, int nroEstacoes, int nroParesEstacao)
-{
-    if (!seek_inicio) {
-        // primeira passada: escreve tudo do na ordem
-        int topo = -1;
-        fseek(bin, 0, SEEK_SET);
-        fwrite(&status, sizeof(char), 1, bin);
-        fwrite(&topo, sizeof(int), 1, bin);
-        fwrite(&proxRRN, sizeof(int), 1, bin);
-        fwrite(&nroEstacoes, sizeof(int), 1, bin);
-        fwrite(&nroParesEstacao, sizeof(int), 1, bin);
-    } else {
-        // segunda passada: atualiza o que mudou, mantem topo intacto, precisa de fseek
-        fseek(bin, 0, SEEK_SET);
-        fwrite(&status, sizeof(char), 1, bin);
-        
-        fseek(bin, 5, SEEK_SET); // Pula o 'topo' (-1) que já está no arquivo
-        fwrite(&proxRRN, sizeof(int), 1, bin);
-        fwrite(&nroEstacoes, sizeof(int), 1, bin);
-        fwrite(&nroParesEstacao, sizeof(int), 1, bin);
-    }
-}
-
-/// @private
-static void contarEstacoesEPares(Registro* temporario, char* nomesVistos[], int* totalEstacoes, Par paresVistos[], int* totalPares)
-{
-    // contagem estações únicas (pelo nome)
-    if (strlen(temporario->nomeEstacao) > 0) {
-        bool estacaoJaExiste = false;
-        for (int i = 0; i < (*totalEstacoes); i++) {
-            if (!strcmp(nomesVistos[i], temporario->nomeEstacao)) {
-                estacaoJaExiste = true;
-                break;
-            }
-        }
-        if (!estacaoJaExiste) {
-            // aloca espaço (no primeiro index não ocupado do vetor de nomes) suficente para o nome
-            nomesVistos[*totalEstacoes] = malloc(strlen(temporario->nomeEstacao) + 1);
-            strcpy(nomesVistos[*totalEstacoes], temporario->nomeEstacao);
-            (*totalEstacoes)++;
-        }
-    }
-
-    // contagem de pares
-    if (temporario->codProxEstacao != -1) { 
-        bool parJaExiste = false;
-        for (int i = 0; i < (*totalPares); i++) {
-            if (paresVistos[i].origem == temporario->codEstacao && paresVistos[i].destino == temporario->codProxEstacao) {
-                parJaExiste = true;
-                break;
-            }
-        }
-        if (!parJaExiste) {
-            paresVistos[*totalPares].origem = temporario->codEstacao;
-            paresVistos[*totalPares].destino = temporario->codProxEstacao;
-            (*totalPares)++;
-        }
-    }
-}
 
 
 void create_table(const char *nomeArquivoCSV, const char *nomeArquivoBin)

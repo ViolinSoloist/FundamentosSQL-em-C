@@ -1,9 +1,13 @@
 #ifndef BUSCA_H
 #define BUSCA_H
 
-#include <stdbool.h>
 #include <stdio.h>
-#include "estruturas.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+#include "estruturas.h" 
+#include "fornecidas.h"
 
 /*
 esse arquivo contém o mecanismo principal de busca e varredura que outras funções (delete, update, select, etc) vão usar
