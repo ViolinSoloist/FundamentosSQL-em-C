@@ -61,6 +61,7 @@ void deletar(const char *nomeArquivoBin, int n) {
         args.dados_extras = &topo;
         args.offset_atual = OFFSET_INI_DADOS;
 
+        // le a entrada n vezes 
         lerLinhaBusca(file, &args);
     }
     // escreve topo atualizado

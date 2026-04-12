@@ -12,6 +12,7 @@ static void callbackUpdate(FILE* file, int qtd_encontrados, long* offsets, void*
     fseek(file, offset + 1, SEEK_SET);
     binToStruct(&temp, file);
 
+    // cascata de verificações: se algo estiver sendo buscado, faz receber o valor do que está sendo buscado
     if (oqmudar->checar_codEstacao)      
         temp.codEstacao = oqmudar->valores.codEstacao;
 
@@ -35,7 +36,6 @@ static void callbackUpdate(FILE* file, int qtd_encontrados, long* offsets, void*
         temp.nomeEstacao = malloc(strlen(oqmudar->valores.nomeEstacao) + 1);
         strcpy(temp.nomeEstacao, oqmudar->valores.nomeEstacao);
     }
-
     if (oqmudar->checar_nomeLinha) {
         free(temp.nomeLinha);
         temp.nomeLinha = malloc(strlen(oqmudar->valores.nomeLinha) + 1);

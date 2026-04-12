@@ -1,7 +1,5 @@
 #include "select_all.h"
 
-/// @brief Função principal de recuperação de registros
-/// @param nomeArquivoBin Arquivo binário do qual os registros serão recuperados
 void select_all(const char* nomeArquivoBin){
     // rotina ao abrir arquivo binário rb+
     FILE* file = abrirVerificarInconsistentar(nomeArquivoBin);

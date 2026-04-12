@@ -134,9 +134,9 @@ void contarEstacoesEPares(Registro* temporario, CamposUsados* campos)
     }
 }
 
+// grava valores atualizados no cabeçalho
 void gravaEFinaliza(FILE* bin, CamposUsados* campo)
 {
-    // grava valores atualizados no cabeçalho
     fseek(bin, 9, SEEK_SET);
     fwrite(&campo->qtd_estacoes, sizeof(int), 1, bin);
     fwrite(&campo->qtd_pares, sizeof(int), 1, bin);
