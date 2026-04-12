@@ -55,9 +55,14 @@ void deletar(const char *nomeArquivoBin, int n) {
     fseek(file, 1, SEEK_SET);
     fread(&topo, sizeof(int), 1, file);
     
-    for (int i=0; i<n; i++) 
-        lerLinhaBusca(file, wrapperLogicaDelecao, &topo);
+    for (int i=0; i<n; i++) {
+        ArgumentosCallback args;
+        args.callback = wrapperLogicaDelecao;
+        args.dados_extras = &topo;
+        args.offset_atual = OFFSET_INI_DADOS;
 
+        lerLinhaBusca(file, &args);
+    }
     // escreve topo atualizado
     fseek(file, 1, SEEK_SET);
     fwrite(&topo, sizeof(int), 1, file);

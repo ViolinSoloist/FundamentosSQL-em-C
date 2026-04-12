@@ -25,8 +25,6 @@ até achar o campo que esteja marcado como true (ou seja, campo que está sendo 
 Faz isso para todos os campos, e se em qualquer um deles o valor dá diferente, já "falha" o match. Se passa por todos os critérios, quer dizer que atende à busca.
 */
 
-typedef void (*AcaoPosBusca)(FILE* file, ArgumentosCallback* args);
-
 // lê parâmetros da busca (seja pra deleção, select, etc) e marca na struct OQueBuscar os campos a serem buscados com true
 /// @attention LEMBRAR DE DAR FREE NOS CAMPOS QUE CORRESPONDEM AOS NOMES (SÃO CAMPOS ALOCADOS DINAMICAMENTE) QND TERMINAR DE USAR O REGISTRO DE QUERY
 void marcadorFlag(char* nomeCampo, OQueBuscar* Query);

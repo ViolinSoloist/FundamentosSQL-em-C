@@ -2,6 +2,7 @@
 #define ESTRUTURAS_H
 
 #include <stdbool.h>
+#include <stdio.h>
 
 #define OFFSET_INI_DADOS 17
 #define TAM_REGISTRO 80
@@ -65,6 +66,8 @@ typedef struct {
     int codEstacao;
     int codProxEstacao;
 } CamposUsados;
+
+typedef void (*AcaoPosBusca)(FILE* file, int qtd_encontrados, long* offsets, void* dados_extras);
 
 typedef struct {
     OQueBuscar query;

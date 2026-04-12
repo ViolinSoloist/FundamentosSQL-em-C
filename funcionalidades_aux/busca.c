@@ -57,11 +57,11 @@ static void comparaECallback(FILE* bin, char removido, ArgumentosCallback* args)
 
         // teste de match
         if (atendeCriterios(reg_atual, args->query)) {
-            args->qntd_found++; // Soma na quantidade de achados
+            args->qntd_found++; 
 
-            callback(bin, 1, args->offset_atual, args->dados_extras);    // Chama a ação para realizar no registro
+            // CORREÇÃO: Usa args->callback e passa &args->offset_atual
+            args->callback(bin, 1, &args->offset_atual, args->dados_extras);    
 
-            //callback pode mudar a posição do cursor, então damos um fseek fixo para o final do registro atual
             fseek(bin, args->offset_atual + TAM_REGISTRO, SEEK_SET);
         }
 
@@ -197,6 +197,6 @@ void percorreEBuscaCorrespondencia(FILE* bin, ArgumentosCallback* args) {
     while (fread(&removido, sizeof(char), 1, bin) == 1) {comparaECallback(bin, removido, args);}
     
     if (args->qntd_found == 0)
-        callback(bin, 0, NULL, args->dados_extras);
+        args->callback(bin, 0, NULL, args->dados_extras);
 }
 
