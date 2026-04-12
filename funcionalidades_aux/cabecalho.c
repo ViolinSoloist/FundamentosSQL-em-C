@@ -75,63 +75,61 @@ bool inicializarVariaveis(CamposUsados* campo_usado)
 }
 
 
-/// @private @brief inicializa a escrita de dados no arquivo bin, começando com o registro de cabeçalho
-void escreveCabecarioBin(bool seek_inicio, FILE* bin, char status, int proxRRN, int nroEstacoes, int nroParesEstacao)
+/// @brief inicializa a escrita de dados no arquivo bin, começando com o registro de cabeçalho
+void escreveCabecarioBin(bool seek_inicio, FILE* bin, Cabecalho* head)
 {
     if (!seek_inicio) {
         // primeira passada: escreve tudo do na ordem
-        int topo = -1;
         fseek(bin, 0, SEEK_SET);
-        fwrite(&status, sizeof(char), 1, bin);
-        fwrite(&topo, sizeof(int), 1, bin);
-        fwrite(&proxRRN, sizeof(int), 1, bin);
-        fwrite(&nroEstacoes, sizeof(int), 1, bin);
-        fwrite(&nroParesEstacao, sizeof(int), 1, bin);
+        fwrite(&head->status, sizeof(char), 1, bin);
+        fwrite(&head->topo, sizeof(int), 1, bin);
+        fwrite(&head->proxRRN, sizeof(int), 1, bin);
+        fwrite(&head->nroEstacoes, sizeof(int), 1, bin);
+        fwrite(&head->nroParesEstacao, sizeof(int), 1, bin);
     } else {
         // segunda passada: atualiza o que mudou, mantem topo intacto, precisa de fseek
         fseek(bin, 0, SEEK_SET);
-        fwrite(&status, sizeof(char), 1, bin);
+        fwrite(&head->status, sizeof(char), 1, bin);
         
         fseek(bin, 5, SEEK_SET); // Pula o 'topo' (-1) que já está no arquivo
-        fwrite(&proxRRN, sizeof(int), 1, bin);
-        fwrite(&nroEstacoes, sizeof(int), 1, bin);
-        fwrite(&nroParesEstacao, sizeof(int), 1, bin);
+        fwrite(&head->proxRRN, sizeof(int), 1, bin);
+        fwrite(&head->nroEstacoes, sizeof(int), 1, bin);
+        fwrite(&head->nroParesEstacao, sizeof(int), 1, bin);
     }
 }
 
-/// @private
-void contarEstacoesEPares(Registro* temporario, char* nomesVistos[], int* totalEstacoes, Par paresVistos[], int* totalPares)
+void contarEstacoesEPares(Registro* temporario, CamposUsados* campos)
 {
     // contagem estações únicas (pelo nome)
     if (strlen(temporario->nomeEstacao) > 0) {
         bool estacaoJaExiste = false;
-        for (int i = 0; i < (*totalEstacoes); i++) {
-            if (!strcmp(nomesVistos[i], temporario->nomeEstacao)) {
+        for (int i = 0; i < (campos->qtd_estacoes); i++) {
+            if (!strcmp(campos->nomes_vistos[i], temporario->nomeEstacao)) {
                 estacaoJaExiste = true;
                 break;
             }
         }
         if (!estacaoJaExiste) {
             // aloca espaço (no primeiro index não ocupado do vetor de nomes) suficente para o nome
-            nomesVistos[*totalEstacoes] = malloc(strlen(temporario->nomeEstacao) + 1);
-            strcpy(nomesVistos[*totalEstacoes], temporario->nomeEstacao);
-            (*totalEstacoes)++;
+            campos->nomes_vistos[campos->qtd_estacoes] = malloc(strlen(temporario->nomeEstacao) + 1);
+            strcpy(campos->nomes_vistos[campos->qtd_estacoes], temporario->nomeEstacao);
+            campos->qtd_estacoes++;
         }
     }
 
     // contagem de pares
     if (temporario->codProxEstacao != -1) { 
         bool parJaExiste = false;
-        for (int i = 0; i < (*totalPares); i++) {
-            if (paresVistos[i].origem == temporario->codEstacao && paresVistos[i].destino == temporario->codProxEstacao) {
+        for (int i = 0; i < campos->qtd_pares; i++) {
+            if (campos->pares_vistos[i].origem == temporario->codEstacao && campos->pares_vistos[i].destino == temporario->codProxEstacao) {
                 parJaExiste = true;
                 break;
             }
         }
         if (!parJaExiste) {
-            paresVistos[*totalPares].origem = temporario->codEstacao;
-            paresVistos[*totalPares].destino = temporario->codProxEstacao;
-            (*totalPares)++;
+            campos->pares_vistos[campos->qtd_pares].origem = temporario->codEstacao;
+            campos->pares_vistos[campos->qtd_pares].destino = temporario->codProxEstacao;
+            campos->qtd_pares++;
         }
     }
 }

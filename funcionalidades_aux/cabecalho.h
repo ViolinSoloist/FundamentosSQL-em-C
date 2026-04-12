@@ -7,8 +7,8 @@
 
 #include "estruturas.h"
 
-void escreveCabecarioBin(bool seek_inicio, FILE* bin, char status, int proxRRN, int nroEstacoes, int nroParesEstacao);
-void contarEstacoesEPares(Registro* temporario, char* nomesVistos[], int* totalEstacoes, Par paresVistos[], int* totalPares);
+void escreveCabecarioBin(bool seek_inicio, FILE* bin, Cabecalho* head);
+void contarEstacoesEPares(Registro* temporario, CamposUsados* campos);
 void gravaEFinaliza(FILE* bin, CamposUsados* campo);
 void atualizarContadoresCabecalho(FILE* bin);
 
