@@ -1,7 +1,7 @@
 #include "terminal.h"
 
 
-// Função para ler diretamente do terminal para um registro temporário
+// Função para ler diretamente da entrada para um registro temporário
 void lerRegistro(Registro* temp){
     char buffer[200]; // Buffer temporário para ler qualquer campo
 
@@ -78,15 +78,4 @@ void mostrarRegistro(Registro* registro_lido){
 
     if (registro_lido->codEstIntegra == -1) printf("NULO\n");
     else printf("%d\n", registro_lido->codEstIntegra);
-}
-
-void lerLinhaNormal(FILE* file, char* linha){
-    fgets(linha, sizeof(linha), file);
-
-    // tratamento de quebra de linhas (windows, linux)
-    linha[strcspn(linha, "\n")] = '\0';
-    linha[strcspn(linha, "\r")] = '\0';
-
-    // tratamento linah "fantasma"
-    if (strlen(linha) == 0) return;
 }

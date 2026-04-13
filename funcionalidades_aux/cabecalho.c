@@ -1,65 +1,9 @@
 #include "cabecalho.h"
+#include "serial.h"
 
 #define CONTADOR_MAX 1000
 
-void leituraCamposParaAtualizar(FILE* bin, CamposUsados* campos) {
-    // le e salva os campos seguintes (APENAS codEstacao e codProxEstacao SERÃO ÚTEIS, proximo e codLinha lido junto apenas porque tá no meio de tudo)
-    int proximo, codLinha;
-    fread(&proximo, sizeof(int), 1, bin);
-    fread(&campos->codEstacao, sizeof(int), 1, bin);        // necessário
-    fread(&codLinha, sizeof(int), 1, bin);
-    fread(&campos->codProxEstacao, sizeof(int), 1, bin);    // necessário
-
-    // pula distProxEstacao + codLinhaIntegra + codEstIntegra = 3*4=12 bytes
-    fseek(bin, 12, SEEK_CUR);
-
-    // leitura do tamanho + nome (estação)
-    fread(&campos->tamNomeEstacao, sizeof(int), 1, bin);
-
-    
-    if (campos->tamNomeEstacao > 0) {
-        fread(campos->bufferNome, sizeof(char), campos->tamNomeEstacao, bin);
-        campos->bufferNome[campos->tamNomeEstacao] = '\0';      // importante lembrar de adicionar '\0' no final porque no registro bin é salvo sem
-    }
-}
-
-void recontagemNomeEPares(CamposUsados* campos) {
-    // contagem de estacoes pelo nome 
-    bool achouEstacao = false;
-    for (int i=0; i<(campos->qtd_estacoes); i++) {
-        if (!strcmp(campos->nomes_vistos[i], campos->bufferNome)) {
-            achouEstacao = true;
-            break;
-        }
-    }
-
-    // se não achar a estação no vetor de estações vistas, e ela existir, adiciona o nome ao vetor de nomes vistos e  incrimenta
-    if (!achouEstacao && campos->tamNomeEstacao > 0) {
-        campos->nomes_vistos[campos->qtd_estacoes] = malloc(campos->tamNomeEstacao + 1);
-        strcpy(campos->nomes_vistos[campos->qtd_estacoes], campos->bufferNome);
-        (campos->qtd_estacoes)++;
-    }
-
-    // contagem de pares (codEstacao -> codProxEstacao)
-    if ((campos->codProxEstacao) != -1) {
-        bool achou_par = false;
-        for (int i = 0; i < (campos->qtd_pares); i++) {
-            if (campos->pares_vistos[i].origem == (campos->codEstacao) && campos->pares_vistos[i].destino == (campos->codProxEstacao)) {
-                achou_par = true;
-                break;
-            }
-        }
-
-        // se não achou o par, faz basicamente a mesma coisa de antes: adiciona no vetor de vistos e incrementa qntd
-        if (!achou_par) {
-            campos->pares_vistos[campos->qtd_pares].origem = campos->codEstacao;
-            campos->pares_vistos[campos->qtd_pares].destino = campos->codProxEstacao;
-            (campos->qtd_pares)++;
-        }
-    }
-}
-
-bool inicializarVariaveis(CamposUsados* campo_usado)
+static bool inicializarVariaveis(CamposUsados* campo_usado)
 {
     // usando a heap pra não estourar a memória stack, char** = matriz de char = vetor de string
     // usa-se os nomes e não ID's porque ID's diferentes seriam contabilizados, como os ID's de estações que têm o mesmo nome mas estão em linhas diferentes
@@ -150,26 +94,27 @@ void gravaEFinaliza(FILE* bin, CamposUsados* campo)
 
 void atualizarContadoresCabecalho(FILE* bin)
 {
-    // ---------------------- ALOCAÇÃO DE MEMÓRIA PARA VETOR DE VISTOS (ESTAÇÃO E PARES DE ESTAÇÃO) ------------------------------  
     CamposUsados campo_usado;
     inicializarVariaveis(&campo_usado);
 
     fseek(bin, 17, SEEK_SET);
     char removido;
 
-    // le primeiro campo do registro de dados atual E TAMBÉM fica no loop enquanto ainda der pra ler removido
     while (fread(&removido, sizeof(char), 1, bin) == 1) {   
-        // considera apenas registros não removidos
         if (removido == '0') {             
-            leituraCamposParaAtualizar(bin, &campo_usado);
+            
+            // lê o registro inteiro do binario para a memória (e também avança a agulha 80 bytes)
+            Registro reg_atual;
+            binToStruct(&reg_atual, bin);
 
-            // ITERA PELOS VETORES PRA VER SE nomeEstacao e codEstacao -> codProxEstacao JÁ ESTÃO LÁ
-            recontagemNomeEPares(&campo_usado);
+            contarEstacoesEPares(&reg_atual, &campo_usado);
 
-            // pula lixo: lido até agora: 1 (removido) + 16 (4 ints) + 12 (pulados) + 4 (tam) + tamNome = 33 + tamNome
-            fseek(bin, 80 - (33 + campo_usado.tamNomeEstacao), SEEK_CUR);
+            // limpeza da memória que o binToStruct alocou
+            if (reg_atual.nomeEstacao) free(reg_atual.nomeEstacao);
+            if (reg_atual.nomeLinha) free(reg_atual.nomeLinha);
+
         } else {
-            fseek(bin, 79, SEEK_CUR); // registro deletado pula)
+            fseek(bin, 79, SEEK_CUR); 
         }
     }
 

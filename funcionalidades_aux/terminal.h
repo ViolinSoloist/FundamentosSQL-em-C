@@ -20,7 +20,4 @@ void lerLinhaBusca(FILE* file, ArgumentosCallback* args);
 /// @brief imprime os dados de um @param registro formatado (USADO EM SELECT)
 void mostrarRegistro(Registro* registro_lido);
 
-/// @brief Le uma linha completa do arquivo de entrada (CSV) e faz todo tratamento necessário
-void lerLinhaNormal(FILE* file, char* linha);
-
 #endif
