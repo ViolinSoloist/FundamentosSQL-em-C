@@ -59,7 +59,6 @@ static void comparaECallback(FILE* bin, char removido, ArgumentosCallback* args)
         if (atendeCriterios(reg_atual, args->query)) {
             args->qntd_found++; 
 
-            // CORREÇÃO: Usa args->callback e passa &args->offset_atual
             args->callback(bin, 1, &args->offset_atual, args->dados_extras);    
 
             fseek(bin, args->offset_atual + TAM_REGISTRO, SEEK_SET);
