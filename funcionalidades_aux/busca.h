@@ -40,16 +40,5 @@ void preencherQuery(OQueBuscar* oqbuscar, int m);
 */
 void percorreEBuscaCorrespondencia(FILE* bin, ArgumentosCallback* args);
 
-/// @attention USAR NO FINAL DAS FUNCIONALIDADES QUE ALTERAM OS REGISTROS : INSERIR, DELETAR, ETC
-/// @brief vasculha todos os registros de dados do arq bin para contar qntd estacoes e qntd de pares de estacoes para atualizar pós delete, insert, etc
-// usa vetores de estacoes/pares vistos alocados dinamicamente para ir guardando os que já foram vistos
-/// recebe arquivo @param bin 
-void atualizarContadoresCabecalho(FILE* bin);
-
-/**
- * @brief função auxiliar, le o registro atual do arq bin e copia os dados pra struct Registro
- * recebe ponteiro para @param regAtual e o arquivo @param bin
- */
-void binToStruct(Registro* regAtual, FILE* bin);
 
 #endif
