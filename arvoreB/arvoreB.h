@@ -2,14 +2,19 @@
 #define ARVOREB_H
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
 #include "estruturas.h"
 
 #define MAX_NOS 3
 #define MAX_PONTEIROS 4
+#define TAM_CABECALHO 17
+#define TAM_NO 53
 
 /*
 ------------------------------------------------------------------------------------
-Registro do cabecalho da arvore B, implementando conforme especificação do trabalho
+Registro do cabecalho da Árvore B, implementando conforme especificação do trabalho
 ------------------------------------------------------------------------------------
 */
 
@@ -23,7 +28,7 @@ typedef struct {
 
 /*
 --------------------------------------------------------------------------------------
-Struct de um nó da arvore B, implementado conforme especificação do trabalho
+Struct de um nó da Árvore B, implementado conforme especificação do trabalho
 --------------------------------------------------------------------------------------
 */
 
@@ -38,13 +43,26 @@ typedef struct {
 } NoArvore;
 
 /*
+-------------------------------------------------------------------------------------------------------------
+Struct para fazer a inserção na Árvore B, útil para ver se precisou de split ou não e guardar os novos RRNs
+-------------------------------------------------------------------------------------------------------------
+*/
+
+typedef struct {
+    int chavePromovida;
+    int PRpromovido;
+    int novoRRN;
+    bool houveSplit;
+} ResultadoInsercao;
+
+/*
 ------------------------------------------------------------------------------------
 Declarando funções de inicialização da Árvore-B: Criar tabela e funções auxiliares 
 ------------------------------------------------------------------------------------
 */
 
-void ArvoreCriar();     // Cria o arquivo de indices Arvore-B
-void NoCriar();         // Cria um Nó da Árvore-B
+void ArvoreCriar(FILE* arv, CabecalhoArvore* cab);     // Cria o arquivo de indices Arvore-B
+void NoCriar(NoArvore* no, int tipoNo);                             // Cria um Nó da Árvore-B
 
 /*
 ----------------------------------------------------------------------------------------------
@@ -52,11 +70,11 @@ Declarando funções de Saída e Entrada (I/O) para auxiliar na criação e manu
 ----------------------------------------------------------------------------------------------
 */
 
-void lerCabecalhoArvore();      // Le do arquivo de indices para a struct cabeçalho
-void gravarCabecalhoArvore();   // Grava o conteudo da struct cabeçaho pro arquivo de indices
+void gravarCabecalhoArvore(FILE* arv, CabecalhoArvore* cab);   // Grava o conteudo da struct cabeçaho pro arquivo de indices
+void lerCabecalhoArvore(FILE* arv, CabecalhoArvore* cab);      // Le do arquivo de indices para a struct cabeçalho
 
-void lerNoArvore();             // Le do arquivo de indices para a struct No
-void gravarNoArvore();          // Grava o conteudo da struct No pro arquivo de indices
+void gravarNoArvore(FILE* arv, NoArvore* no, int RRN);          // Grava o conteudo da struct No pro arquivo de indices
+void lerNoArvore(FILE* arv, NoArvore* no, int RRN);             // Le do arquivo de indices para a struct No
 
 
 /*
@@ -65,7 +83,10 @@ Declarando funções básicas da Árvore-B: Busca, inserção e remoção
 ----------------------------------------------------------------------
 */
 
-int ArvoreBuscar(FILE* arv, int RRN, int chave, int foundRRN, int foundPos);
+// Busca um registro na Árvore-B, retornando o RRN do nó onde a chave foi encontrada ou -1 se não encontrada
+int ArvoreBuscar(FILE* arv, CabecalhoArvore* cab, int chave);   
+void ArvoreInserir(FILE* arv, CabecalhoArvore* cab, int chave, int RRN);        // Insere um registro na Árvore-B
+void ArvoreRemover(FILE* arv, CabecalhoArvore* cab, int chave);                 // Remove um registro da Árvore-B
 
 
 #endif
