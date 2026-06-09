@@ -183,14 +183,18 @@ int ArvoreBuscar(FILE* arv, CabecalhoArvore* cab, int chave) {
 // --------------------------------------
 // FUNÇÕES PARA A INSERÇÃO NA ÁRVORE B
 
-void split();
+ResultadoInsercao split();
 
+// Função para inserir ordenado em um nó folha, uma vez que já determinado que ele não está cheio
 void FolhaInserirOrdenado(NoArvore* no, int chave, int pr){
+
+    // Procura enquanto não acha uma chave no nó maior que a chave que queremos inserir
     for (int i = 0; i < no->nroChaves; i++){
         if (no->Chaves[i] > chave) {
             for (int j = no->nroChaves-1; j >= i; j--){
-                no->Chaves[j] = no->Chaves[j-1];
-                no->Pr[j] = no->Pr[j-1];
+                no->Chaves[j] = no->Chaves[j-1];        // Da shift nas chaves antigas pra encaixar a chave nova no lugar dela
+                no->Pr[j] = no->Pr[j-1];                // Da shift nos ponteiros pra acompanhar o shift das chaves
+                no->P[j] = no->P[j-1];
             }
             
             no->Chaves[i] = chave;
@@ -200,14 +204,47 @@ void FolhaInserirOrdenado(NoArvore* no, int chave, int pr){
         }
     }
 
+    // Se não achou nada no for, é por que a chave nova é maior que as outras no nó
     int pos = no->nroChaves;
     no->Chaves[pos] = chave;
     no->Pr[pos] = pr;
     no->nroChaves++;
     return;
 }
-void ArvoreInserirRecursiva(NoArvore* no, int chave, int pr, int noRRN){
+
+ResultadoInsercao ArvoreInserirRecursiva(FILE* arv, CabecalhoArvore* cab, int RRN, int chave, int pr){
+
+    // Começa lendo o nó atual para a struct no
+    NoArvore* no;
+    lerNoArvore(arv, no, RRN);
+
+    ResultadoInsercao resultado;
+    resultado.chavePromovida = -1;
+    resultado.houveSplit = false;
+    resultado.novoRRN = -1;
+    resultado.PRpromovido = -1;
+
+
+    // Verifica se o nó é do tipo folha
+    if (no->tipoNo == -1){
+        FolhaInserirOrdenado(no, chave, pr);
+        gravarNoArvore(arv, no, RRN);
+
+        // Verifica a capacidade do nó pra saber se teve que fazer split ou não
+        if (no->nroChaves < MAX_NOS-1) {
+            resultado.novoRRN = RRN;
+            return resultado;
+        }
+        else {
+            resultado = split();
+            return resultado;
+        }
+    }
+
+    // Se o nó não for folha:
     
+
 }
+
 void ArvoreInserir();
 
