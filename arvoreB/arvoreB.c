@@ -184,16 +184,30 @@ int ArvoreBuscar(FILE* arv, CabecalhoArvore* cab, int chave) {
 // FUNÇÕES PARA A INSERÇÃO NA ÁRVORE B
 
 void split();
-void InserirOrdenado(NoArvore* no, int chave){
+
+void FolhaInserirOrdenado(NoArvore* no, int chave, int pr){
     for (int i = 0; i < no->nroChaves; i++){
         if (no->Chaves[i] > chave) {
-            for (int j = no->nroChaves-1; j >= i; j++)
+            for (int j = no->nroChaves-1; j >= i; j--){
                 no->Chaves[j] = no->Chaves[j-1];
+                no->Pr[j] = no->Pr[j-1];
+            }
             
             no->Chaves[i] = chave;
+            no->Pr[i] = pr;
+            no->nroChaves++;
+            return;
         }
     }
+
+    int pos = no->nroChaves;
+    no->Chaves[pos] = chave;
+    no->Pr[pos] = pr;
+    no->nroChaves++;
+    return;
 }
-void ArvoreInserirRecursiva();
+void ArvoreInserirRecursiva(NoArvore* no, int chave, int pr, int noRRN){
+    
+}
 void ArvoreInserir();
 
