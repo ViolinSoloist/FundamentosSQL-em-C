@@ -272,6 +272,7 @@ ResultadoInsercao split(FILE* arv, CabecalhoArvore* cab, NoArvore no, int chaveN
     }
     tempP[MAX_PONTEIROS-1] = no.P[MAX_PONTEIROS-1];
 
+    bool achouChave = false;
     for (int i = 0; i < MAX_NOS; i++){
         if (tempChaves[i] > chaveNova){
             for (int j = MAX_NOS; j >= i; j--){
@@ -283,22 +284,33 @@ ResultadoInsercao split(FILE* arv, CabecalhoArvore* cab, NoArvore no, int chaveN
             tempChaves[i] = chaveNova;
             tempPr[i] = pr;
             tempP[i+1] = direitoRRN;
+            achouChave = true;
+            break;
         }
     }
 
     // Se não achou nada no for, é por que a chave nova é maior que as outras no nó
-    int pos = MAX_NOS;
-    tempChaves[pos] = chaveNova;
-    tempPr[pos] = pr;
-    tempP[pos+1] = direitoRRN;
+    if (!achouChave){
+        int pos = MAX_NOS;
+        tempChaves[pos] = chaveNova;
+        tempPr[pos] = pr;
+        tempP[pos+1] = direitoRRN;
+    }
     
     // Pega o nó anterior e mantém só os dois primeiros valores
     // Será o novo nó esquerdo
-    for (int i = 2; i < MAX_NOS; i++){
-        no.Chaves[i] = -1;
-        no.Pr[i] = -1;
-        no.P[i+1] = -1;
+    for (int i = 0; i < MAX_NOS; i++){
+        if (i < 2){
+            no.Chaves[i] = tempChaves[i];
+            no.Pr[i] = tempPr[i];
+            no.P[i] = tempP[i];
+        } else {
+            no.Chaves[i] = -1;
+            no.Pr[i] = -1;
+            no.P[i+1] = -1;
+        }
     }
+    no.P[2] = tempP[2];
     no.nroChaves = 2;
     gravarNoArvore(arv, &no, atualRRN);     // Grava no arquivo de indíces
 
@@ -326,12 +338,48 @@ ResultadoInsercao split(FILE* arv, CabecalhoArvore* cab, NoArvore no, int chaveN
     return resultado;
 }
 
-ResultadoInsercao ArvoreInserirRecursiva(int atualRRN, int chave, int noDireitoPromovido, int chavePromovida){
+ResultadoInsercao ArvoreInserirRecursiva(FILE* arv, CabecalhoArvore* cab,int atualRRN, int chave, int pr, int noDireitoPromovido, int chavePromovida){
+
+    ResultadoInsercao resultado;
+    resultado.chavePromovida = -1;
+    resultado.PRpromovido = -1;
+    resultado.PRpromovido = -1;
+    resultado.houveSplit = false;
+
+    NoArvore no;
+    lerNoArvore(arv, &no, atualRRN);
+    
+    // 1º passo: ve se o nó atual é folha, se não for, ve por qual filho desce
+    // Verifica se é nó folha
+    if (no.tipoNo == -1) {
+        // Se não estiver cheio, só adiciona na folha
+        if (no.nroChaves < MAX_NOS){
+            FolhaInserirOrdenado(&no, chave, pr);
+            gravarNoArvore(arv, &no, atualRRN);
+            return resultado;
+        
+        // Se estiver cheio, precisa tratar o split
+        } else {
+            return split(arv, cab, no, chave, pr, atualRRN, -1);
+        }
+    
+    // Se não for nó folha, encontra por onde ele desce
+    } else {
+
+        for (int i = 0; i < no.nroChaves; i++){
+            if (no.Chaves[i] == chave) {
+                printf("Chave já inserida na árvore");
+                return;
+            }
+            if (no.Chaves[i] > chave){
+                return ArvoreInserirRecursiva(arv, cab, no.Chaves[i], chave, no.Pr[i], -1, -1);
+            }
+        }
+    }
 
 }
 
 void ArvoreInserir(FILE* arv, CabecalhoArvore* cab, int chave){
-
-
+    return NULL;
 }
 
