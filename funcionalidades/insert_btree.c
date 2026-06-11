@@ -48,8 +48,8 @@ void logicaInsercao_btree(FILE* file, FILE* arv, CabecalhoArvore* cab){
     fseek(file, 5, SEEK_SET);
     fwrite(&proxRRN, sizeof(int), 1, file);
 
-    free(temp.nomeEstacao);
-    free(temp.nomeLinha);
+    if (temp.nomeEstacao) free(temp.nomeEstacao);
+    if (temp.nomeLinha) free(temp.nomeLinha);
 
 }
 

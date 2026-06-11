@@ -210,9 +210,9 @@ void FolhaInserirOrdenado(NoArvore* no, int chave, int pr){
     // Procura enquanto não acha uma chave no nó maior que a chave que queremos inserir
     for (int i = 0; i < no->nroChaves; i++){
         if (no->Chaves[i] > chave) {
-            for (int j = no->nroChaves-1; j >= i; j--){
+            for (int j = no->nroChaves-1; j > i; j--){
                 no->Chaves[j] = no->Chaves[j-1];        // Da shift nas chaves antigas pra encaixar a chave nova no lugar dela
-                no->Pr[j] = no->Pr[j-1];                // Da shift nos ponteiros pra acompanhar o shift das chaves
+                no->Pr[j] = no->Pr[j-1];                
             }
             
             no->Chaves[i] = chave;
@@ -230,12 +230,12 @@ void FolhaInserirOrdenado(NoArvore* no, int chave, int pr){
     return;
 }
 
+// Função para inserir ordenado em um nó interno, uma vez já determinado que ele não está cheio
 void InternoInserirOrdenado(NoArvore* no, int chave, int pr, int direitoRRN){
-
 
     for (int i = 0; i < no->nroChaves; i++){
         if (no->Chaves[i] > chave){
-            for (int j = no->nroChaves-1; j >= i; j--){
+            for (int j = no->nroChaves-1; j > i; j--){
                 no->Chaves[j] = no->Chaves[j-1];        // Da shift nas chaves antigas pra encaixar a chave nova no lugar dela
                 no->Pr[j] = no->Pr[j-1];
                 no->P[j+1] = no->P[j];                // Da shift nos ponteiros pra acompanhar o shift das chaves
@@ -320,14 +320,15 @@ ResultadoInsercao split(FILE* arv, CabecalhoArvore* cab, NoArvore* no, int chave
     NoCriar(&novoNo, no->tipoNo);
     cab->nroNos++;
     int novoRRN = alocaRRN(arv, cab);
-    if (no->tipoNo == 1){
+    if (no->tipoNo != -1){
         novoNo.P[0] = tempP[3];   // filho esquerdo do nó direito
         novoNo.P[1] = tempP[4];   // filho direito do nó direito
-        novoNo.nroChaves = 1;
     }
     novoNo.Chaves[0] = tempChaves[3];
     novoNo.Pr[0] = tempPr[3];
+    novoNo.nroChaves = 1;
     gravarNoArvore(arv, &novoNo, novoRRN);  // Grava no arquivo de indíces
+    gravarCabecalhoArvore(arv, cab);        // Atualiza o cabeçalho
 
     // Cria struct do resultado da inserção passando as informações do split pra fora da função
     ResultadoInsercao resultado;
@@ -339,13 +340,17 @@ ResultadoInsercao split(FILE* arv, CabecalhoArvore* cab, NoArvore* no, int chave
     return resultado;
 }
 
-ResultadoInsercao ArvoreInserirRecursiva(FILE* arv, CabecalhoArvore* cab,int atualRRN, int chave, int pr){
+ResultadoInsercao ArvoreInserirRecursiva(FILE* arv, CabecalhoArvore* cab, int atualRRN, int chave, int pr){
 
     ResultadoInsercao resultado;
     resultado.chavePromovida = -1;
     resultado.PRpromovido = -1;
     resultado.novoRRN = -1;
     resultado.houveSplit = false;
+
+    if (atualRRN == -1) {
+        return resultado;
+    }
 
     NoArvore no;
     lerNoArvore(arv, &no, atualRRN);
@@ -354,6 +359,7 @@ ResultadoInsercao ArvoreInserirRecursiva(FILE* arv, CabecalhoArvore* cab,int atu
     // Verifica se é nó folha
     if (no.tipoNo == -1) {
         // Se não estiver cheio, só adiciona na folha
+        printf("  folha RRN=%d nroChaves=%d\n", atualRRN, no.nroChaves);
         if (no.nroChaves < MAX_NOS){
             FolhaInserirOrdenado(&no, chave, pr);
             gravarNoArvore(arv, &no, atualRRN);
