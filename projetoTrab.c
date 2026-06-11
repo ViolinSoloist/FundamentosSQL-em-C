@@ -65,6 +65,26 @@ int main() {
             update(arquivoEntrada, n);
 			break;
 
+        case 7:
+            scanf("%s %s", arquivoEntrada, arquivoSaida);
+            create_index(arquivoEntrada, arquivoSaida);
+            break;
+        
+        case 8:
+            scanf("%s %s %d", arquivoEntrada, arquivoSaida, &n);
+            select_where_btree(arquivoEntrada, arquivoSaida, n);
+            break;
+        
+        case 9:
+            scanf("%s %s %d", arquivoEntrada, arquivoSaida, &n);
+            insert_btree(arquivoEntrada, arquivoSaida, n);
+            break;
+        
+        // case 10:
+        //     scanf("%s %s %d", arquivoEntrada, arquivoSaida, &n);
+        //     delete_btree(arquivoEntrada, arquivoSaida, n);
+        //     break;
+
         default:
             printf("Falha no processamento do arquivo.\n");
             break;

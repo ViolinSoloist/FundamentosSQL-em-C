@@ -1,0 +1,75 @@
+#include "insert_btree.h"
+
+#define DEBUGGAR false
+
+void logicaInsercao(FILE* file, FILE* arv, CabecalhoArvore* cab){
+    // Pega valores guardados em TOPO e proxRRN
+    int topo, proxRRN;
+
+    fseek(file, 1, SEEK_SET);
+    fread(&topo, sizeof(int), 1, file);
+    fseek(file, 5, SEEK_SET);
+    fread(&proxRRN, sizeof(int), 1, file);
+
+    // Determina se o offset será a partir do proxRRN ou se existe algum registro logicamente removido que sera substituido
+    int offset;
+
+    if (topo != -1){
+        offset = topo;
+    } else {
+        offset = proxRRN;
+        proxRRN++;          // Se for a partir do proximo RRN, atualiza ele incrementando
+    }
+
+    // Encontra onde será a próxima inserção
+    long byteOffset = 17 + (offset*80);
+    fseek(file, byteOffset, SEEK_SET);
+
+    // Se houver ponteiro para o próximo lógicamente removido, salva o valor dele na variavel prox
+    int prox = -1;
+    if (topo != -1){
+        fseek(file, 1, SEEK_CUR);
+        fread(&prox, sizeof(int), 1, file);
+    }
+
+    // Le a entrada para o registro temporário
+    Registro temp;
+    lerRegistro(&temp); // LER REGISTRO ALOCA NOME DINAMICO -> TEM QUE LIBERAR MEMORIA DEPOIS
+
+    // Reposiciona para a posição onde será a inserção
+    fseek(file, byteOffset, SEEK_SET);
+    char removido = '0';
+    gravarRegistroBin(&temp, file, removido, -1);
+    ArvoreInserir(arv, &cab, temp.codEstacao, byteOffset);
+
+    // Atualiza o topo do cabeçário e proxRRN
+    fseek(file, 1, SEEK_SET);
+    fwrite(&prox, sizeof(int), 1, file);
+    fseek(file, 5, SEEK_SET);
+    fwrite(&proxRRN, sizeof(int), 1, file);
+
+    free(temp.nomeEstacao);
+    free(temp.nomeLinha);
+
+}
+
+void insert_btree(const char* nomeArquivoBin, const char* nomeArquivoArvoreBin, int numeroLeituras){
+
+    FILE* bin = abrirVerificarInconsistentar(nomeArquivoBin);
+    FILE* arv = abrirVerificarInconsistentar(nomeArquivoArvoreBin);
+
+    CabecalhoArvore cab;
+    lerCabecalhoArvore(arv, &cab);
+
+    for (int i = 0; i < numeroLeituras; i++){
+        logicaInsercao(bin, arv, &cab);
+    }
+    
+    atualizarContadoresCabecalho(bin);
+
+    finalizarArquivo(bin, DEBUGGAR);
+    finalizarArquivo(arv, DEBUGGAR);
+
+    BinarioNaTela((char*)nomeArquivoBin);
+    BinarioNaTela((char*)nomeArquivoArvoreBin);
+}

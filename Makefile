@@ -14,6 +14,9 @@ FUNCIONALIDADES = \
     $(LOCAL1)/select_where.c \
     $(LOCAL1)/insert.c \
     $(LOCAL1)/update.c \
+    $(LOCAL1)/create_index.c \
+    $(LOCAL1)/insert_btree.c \
+    $(LOCAL1)/select_where_btree.c \
     $(LOCAL2)/busca.c \
     $(LOCAL2)/cabecalho.c \
     $(LOCAL2)/serial.c \
