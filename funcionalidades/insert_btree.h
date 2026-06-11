@@ -1,5 +1,5 @@
-#ifndef INSERT_H
-#define INSERT_H
+#ifndef INSERT_BTREE_H
+#define INSERT_BTREE_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,7 +11,7 @@
 #include "serial.h"
 #include "cabecalho.h"
 #include "terminal.h"
-#include "arvoreB.h"
+#include "../arvoreB/arvoreB.h"
 
 void insert_btree(const char* nomeArquivoBin, const char* nomeArquivoArvoreBin, int numeroLeituras);
 

@@ -429,7 +429,8 @@ void ArvoreInserir(FILE* arv, CabecalhoArvore* cab, int chave, int pr) {
 
     // 2º caso: A árvore já tem nós nela, então faz a inserção recursiva
     ResultadoInsercao res = ArvoreInserirRecursiva(arv, cab, cab->noRaiz, chave, pr);
-
+    printf("houveSplit=%d chavePromovida=%d novoRRN=%d\n", res.houveSplit, res.chavePromovida, res.novoRRN);
+    
     // 3º casp: O split voltou propagando até a raiz
     // Precisa criar raiz nova
     if (res.houveSplit) {

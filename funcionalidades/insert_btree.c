@@ -2,7 +2,7 @@
 
 #define DEBUGGAR false
 
-void logicaInsercao(FILE* file, FILE* arv, CabecalhoArvore* cab){
+void logicaInsercao_btree(FILE* file, FILE* arv, CabecalhoArvore* cab){
     // Pega valores guardados em TOPO e proxRRN
     int topo, proxRRN;
 
@@ -40,7 +40,7 @@ void logicaInsercao(FILE* file, FILE* arv, CabecalhoArvore* cab){
     fseek(file, byteOffset, SEEK_SET);
     char removido = '0';
     gravarRegistroBin(&temp, file, removido, -1);
-    ArvoreInserir(arv, &cab, temp.codEstacao, byteOffset);
+    ArvoreInserir(arv, cab, temp.codEstacao, byteOffset);
 
     // Atualiza o topo do cabeçário e proxRRN
     fseek(file, 1, SEEK_SET);
@@ -62,7 +62,7 @@ void insert_btree(const char* nomeArquivoBin, const char* nomeArquivoArvoreBin, 
     lerCabecalhoArvore(arv, &cab);
 
     for (int i = 0; i < numeroLeituras; i++){
-        logicaInsercao(bin, arv, &cab);
+        logicaInsercao_btree(bin, arv, &cab);
     }
     
     atualizarContadoresCabecalho(bin);

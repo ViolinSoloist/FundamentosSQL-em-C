@@ -6,6 +6,7 @@ FORNECIDAS = funcoes_fornecidas/fornecidas.c
 
 LOCAL1 = funcionalidades
 LOCAL2 = funcionalidades_aux
+LOCAL3 = arvoreB
 
 FUNCIONALIDADES = \
     $(LOCAL1)/create_table.c \
@@ -21,7 +22,8 @@ FUNCIONALIDADES = \
     $(LOCAL2)/cabecalho.c \
     $(LOCAL2)/serial.c \
     $(LOCAL2)/manipul_arq.c \
-    $(LOCAL2)/terminal.c
+    $(LOCAL2)/terminal.c \
+    $(LOCAL3)/arvoreB.c
 
 FLAGS = -Wall -Wextra -std=c99 -g
 INCLUDES = -I. -I$(LOCAL1) -Ifuncoes_fornecidas -I$(LOCAL2)

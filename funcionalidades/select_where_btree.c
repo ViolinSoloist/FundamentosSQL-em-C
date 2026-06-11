@@ -2,7 +2,7 @@
 
 /* Callback chamado pelo percorreEBuscaCorrespondencia quando encontra (ou não) registros correspondentes a busca.
    Imprime os registros encontrados ou mensagem de inexistente caso nenhum seja achado */
-void acaoImprimirRegistros(FILE* file, int qtd_encontrados, long* offsets, void* dados_extras){
+void acaoImprimirRegistros_btree(FILE* file, int qtd_encontrados, long* offsets, void* dados_extras){
     (void)dados_extras;
 
     // Se não achou nenhum registro correspondente, imprime mensagem e retorna
@@ -55,7 +55,7 @@ void select_where_btree(const char* nomeArquivoBin, const char* nomeArquivoArvor
 
             // Se não achou a chave na árvore, imprime mensagem e continua pro próximo critério
             if (offset == -1){
-                printf("Registro Inexistente.\n");
+                printf("Registro inexistente.\n\n");
                 continue;
             } else {
                 fseek(bin, offset, SEEK_SET);   // Vai direto ao offset do registro no arquivo de dados
@@ -64,15 +64,17 @@ void select_where_btree(const char* nomeArquivoBin, const char* nomeArquivoArvor
                 Registro temp;
                 binToStruct(&temp, bin);    // Lê os campos do registro
                 mostrarRegistro(&temp);     // Imprime o registro
+                printf("\n");
             }
 
         // Se a busca não inclui codEstacao, faz varredura sequencial
         } else {
             ArgumentosCallback args;
-            args.callback = acaoImprimirRegistros;  // Callback que imprime os registros encontrados
+            args.callback = acaoImprimirRegistros_btree;  // Callback que imprime os registros encontrados
             args.dados_extras = NULL;
             args.query = query;                     // Critério de busca a ser aplicado em cada registro
             percorreEBuscaCorrespondencia(bin, &args);
+            printf("\n");
         }
     }
 }
