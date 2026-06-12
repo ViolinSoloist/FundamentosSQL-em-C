@@ -1,23 +1,21 @@
 #include "select_all.h"
 
-void select_all(const char* nomeArquivoBin){
+void select_all(const char* nomeArquivoBin) {
     // rotina ao abrir arquivo binário rb+
-    FILE* file = abrirVerificarInconsistentar(nomeArquivoBin);
+    FILE* file = rotinaAbrirArquivo(nomeArquivoBin, LEITURA);
     if (file == NULL) return;
 
-
     int existe_registro = false;
-
     fseek(file, 17, SEEK_SET);
 
     char removido;
-    while (fread(&removido, sizeof(char), 1, file) == 1){
-        if (removido == '0'){
+    while (fread(&removido, sizeof(char), 1, file) == 1) {
+
+        if (removido == '0') {
             Registro reg_lido;
+
             binToStruct(&reg_lido, file);
-
             mostrarRegistro(&reg_lido);
-
             existe_registro = true;
 
         } else {
@@ -25,8 +23,7 @@ void select_all(const char* nomeArquivoBin){
         }
     }
 
-    if (!existe_registro)
-        printf("Registro inexistente\n");
+    if (!existe_registro) printf("Registro inexistente\n");
 
-    finalizarArquivo(file, false);
+    fclose(file);
 }

@@ -54,7 +54,7 @@ void logicaInsercao(FILE* file){
 
 void insert(const char* nomeArquivoBin, int numeroLeituras){
 
-    FILE* file = abrirVerificarInconsistentar(nomeArquivoBin);
+    FILE* file = rotinaAbrirArquivo(nomeArquivoBin, ESCRITA);
 
     for (int i = 0; i < numeroLeituras; i++){
         logicaInsercao(file);
@@ -62,7 +62,7 @@ void insert(const char* nomeArquivoBin, int numeroLeituras){
     
     atualizarContadoresCabecalho(file);
 
-    finalizarArquivo(file, DEBUGGAR);
+    finalizarArquivoEscrita(file, DEBUGGAR);
 
     BinarioNaTela((char*)nomeArquivoBin);
 }

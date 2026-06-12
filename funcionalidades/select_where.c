@@ -25,7 +25,7 @@ void acaoImprimirRegistros(FILE* file, int qtd_encontrados, long* offsets, void*
 
 void select_where(const char* nomeArquivoBin, int numeroBuscas){
 
-    FILE* file = abrirVerificarInconsistentar(nomeArquivoBin);
+    FILE* file = rotinaAbrirArquivo(nomeArquivoBin, LEITURA);
     if (file == NULL) return;
     
     for (int i = 0; i < numeroBuscas; i++) {
@@ -41,5 +41,5 @@ void select_where(const char* nomeArquivoBin, int numeroBuscas){
             printf("\n");
     }
 
-    finalizarArquivo(file, DEBUGGAR);
+    fclose(file);
 }

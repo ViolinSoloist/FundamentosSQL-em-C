@@ -77,4 +77,9 @@ typedef struct {
     void* dados_extras;
 } ArgumentosCallback;
 
+typedef enum {
+    LEITURA,
+    ESCRITA
+} TipoAbertura;
+
 #endif

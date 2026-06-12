@@ -2,7 +2,7 @@
 #include <estruturas.h>
 
 // define o tamanho maximo do nome de um campo
-#define MAX_NOMECAMPO 69
+#define MAX_NOMECAMPO 67
 
 /// ---------------- FUNÇÕES PRIVADAS AUXILIARES ----------------------
 
@@ -193,9 +193,14 @@ void percorreEBuscaCorrespondencia(FILE* bin, ArgumentosCallback* args) {
 
     // enquanto ainda conseguir ler o campo removido dos registros
     char removido;
-    while (fread(&removido, sizeof(char), 1, bin) == 1) {comparaECallback(bin, removido, args);}
+    while (fread(&removido, sizeof(char), 1, bin) == 1) {
+        comparaECallback(bin, removido, args);
+        // se achar correspondência do codEstação, por ele ser único, para busca
+        if (args->query.checar_codEstacao && args->qntd_found > 0) {
+            break;
+        }
+    }
     
     if (args->qntd_found == 0)
         args->callback(bin, 0, NULL, args->dados_extras);
 }
-

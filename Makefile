@@ -6,6 +6,7 @@ FORNECIDAS = funcoes_fornecidas/fornecidas.c
 
 LOCAL1 = funcionalidades
 LOCAL2 = funcionalidades_aux
+LOCAL3 = arvoreB
 
 FUNCIONALIDADES = \
     $(LOCAL1)/create_table.c \
@@ -21,7 +22,7 @@ FUNCIONALIDADES = \
     $(LOCAL2)/terminal.c
 
 FLAGS = -Wall -Wextra -std=c99 -g
-INCLUDES = -I. -I$(LOCAL1) -Ifuncoes_fornecidas -I$(LOCAL2)
+INCLUDES = -I. -I$(LOCAL1) -Ifuncoes_fornecidas -I$(LOCAL2) -I$(LOCAL3)
 
 all:
 	gcc $(MAIN) $(FORNECIDAS) $(FUNCIONALIDADES) -o programaTrab $(FLAGS) $(INCLUDES)

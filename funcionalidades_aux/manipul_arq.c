@@ -1,16 +1,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include "estruturas.h"
 
 // lembrando que é em rb+
-FILE* abrirVerificarInconsistentar(const char* nomeArqBin)
+FILE* rotinaAbrirArquivo(const char* nomeArqBin, TipoAbertura tipo)
 {
-    FILE* file = fopen(nomeArqBin, "rb+");
+    FILE* file;
+    if (tipo == LEITURA)        file = fopen(nomeArqBin, "rb");
+    else if (tipo == ESCRITA)   file = fopen(nomeArqBin, "rb+");
+    else                        fprintf(stderr, "Tipo de abertura de arquivo inexistente.\n");
+    
     if (file == NULL) {
         printf("Falha no processamento do arquivo.\n");
         return NULL;
     }
-    
     // verifica consistencia do arquivo
     char status;
     fread(&status, sizeof(char), 1, file);
@@ -20,16 +24,18 @@ FILE* abrirVerificarInconsistentar(const char* nomeArqBin)
         return NULL;
     }
     
-    // se tá tudo certo, então deixa inconsistente, uma vez que está sendo editado
-    status = '0';
-    fseek(file, 0, SEEK_SET);
-    fwrite(&status, sizeof(char), 1, file);
+    // se tá tudo certo, então deixa inconsistente, SE ESTIVER sendo editado
+    if (tipo == ESCRITA) {
+        status = '0';
+        fseek(file, 0, SEEK_SET);
+        fwrite(&status, sizeof(char), 1, file);
+    }
 
     return file;
 }
 
-// deixa como consistente e finaliza o arquivo
-void finalizarArquivo(FILE* file, bool debuggar) {
+// deixa como consistente e finaliza o arquivo que foi aberto como escrita
+void finalizarArquivoEscrita(FILE* file, bool debuggar) {
     
     char status = '1';
     fseek(file, 0, SEEK_SET);

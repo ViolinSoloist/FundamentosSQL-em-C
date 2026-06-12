@@ -47,7 +47,7 @@ static void wrapperLogicaDelecao(FILE* file, int qtd_encontrados, long* offsets,
 void deletar(const char *nomeArquivoBin, int n) {
     
     // rotina ao abrir arquivo binário rb+
-    FILE* file = abrirVerificarInconsistentar(nomeArquivoBin);
+    FILE* file = rotinaAbrirArquivo(nomeArquivoBin, ESCRITA);
     if (file == NULL) return;
 
     // salva o que está no topo (necessário para deleção)
@@ -71,7 +71,7 @@ void deletar(const char *nomeArquivoBin, int n) {
     atualizarContadoresCabecalho(file);
 
     // se quiser debbugar antes de fechar arquivo, deixar como true lá no #define, no início do arquivo
-    finalizarArquivo(file, DEBUGGAR);
+    finalizarArquivoEscrita(file, DEBUGGAR);
 
     BinarioNaTela((char*)nomeArquivoBin); 
 }

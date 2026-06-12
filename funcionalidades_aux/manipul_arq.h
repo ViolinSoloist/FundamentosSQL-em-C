@@ -6,8 +6,8 @@
 
 // faz a rotina de abrir o arquivo binário (LEITURA + ESCRITA BINÁRIO), verificação e depois deixa como inconsistente
 // lembrar de fechar arquivo (isso é basicamente um fopen() só que mais completo)
-FILE* abrirVerificarInconsistentar(const char* nomeArquivoBin);
+FILE* rotinaAbrirArquivo(const char* nomeArqBin, TipoAbertura tipo);
 
-void finalizarArquivo(FILE* file, bool debuggar);
+void finalizarArquivoEscrita(FILE* file, bool debuggar);
 
 #endif

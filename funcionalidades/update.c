@@ -77,12 +77,12 @@ static void Le2LinhasBuscaEUpdate(FILE* file) {
 }
 
 void update(const char* nomeArquivoBin, int n) {
-    FILE* file = abrirVerificarInconsistentar(nomeArquivoBin);
+    FILE* file = rotinaAbrirArquivo(nomeArquivoBin, ESCRITA);
 
     for (int i=0; i<n; i++) 
         Le2LinhasBuscaEUpdate(file);
 
     atualizarContadoresCabecalho(file);
-    finalizarArquivo(file, DEBUGGAR);
+    finalizarArquivoEscrita(file, DEBUGGAR);
     BinarioNaTela((char*)nomeArquivoBin);
 }
