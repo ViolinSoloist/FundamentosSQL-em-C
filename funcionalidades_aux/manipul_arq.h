@@ -8,6 +8,8 @@
 // lembrar de fechar arquivo (isso é basicamente um fopen() só que mais completo)
 FILE* rotinaAbrirArquivo(const char* nomeArqBin, TipoAbertura tipo);
 
+/// @brief rotina de fechar os arquivos abertos POR ESCRITA
+/// @attention usar apenas em arquivos abertor POR ESCRITA (se não só usa fclose() mesmo)
 void finalizarArquivoEscrita(FILE* file, bool debuggar);
 
 #endif

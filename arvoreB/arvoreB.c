@@ -142,7 +142,7 @@ Implementação das funcionalidades básicas da Árvore B: buscar, inserir e rem
 // FUNÇÕES PARA A BUSCA NA ÁRVORE B
 
 // Função auxiliar para fazer a busca recursiva na árvore B
-int ArvoreBuscarRecursiva(FILE* arv, int RRN, int chave) {
+static int ArvoreBuscarRecursiva(FILE* arv, int RRN, int chave) {
     if (RRN == -1) {
         return -1;
     }
