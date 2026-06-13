@@ -31,8 +31,8 @@ void acaoImprimirRegistros_btree(FILE* file, int qtd_encontrados, long* offsets,
 void select_where_btree(const char* nomeArquivoBin, const char* nomeArquivoArvoreBin, int numeroBuscas){
 
     // Abre os arquivos verificando inconsistência de status
-    FILE* bin = abrirVerificarInconsistentar(nomeArquivoBin);
-    FILE* arv = abrirVerificarInconsistentar(nomeArquivoArvoreBin);
+    FILE* bin = rotinaAbrirArquivo(nomeArquivoBin, LEITURA);
+    FILE* arv = rotinaAbrirArquivo(nomeArquivoArvoreBin, LEITURA);
     if (bin == NULL || arv == NULL) return;
 
     // Lê o cabeçalho do arquivo de índice para a struct
@@ -77,4 +77,7 @@ void select_where_btree(const char* nomeArquivoBin, const char* nomeArquivoArvor
             printf("\n");
         }
     }
+
+    fclose(bin);
+    fclose(arv);
 }

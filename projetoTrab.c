@@ -16,9 +16,6 @@
 #include "select_where_btree.h"
 #include "insert_btree.h"
 
-#include "arvoreB.h"
-#include "insert_btree.h"
-
 int main() { 
 
     int funcionalidade;
@@ -74,18 +71,18 @@ int main() {
 			break;
 
         case 7:
-            scanf("%s %s", arquivoEntrada, arquivoSaida);
-            create_index(arquivoEntrada, arquivoSaida);
+            scanf("%s %s", arquivoEntrada, arquivoIndice);
+            create_index(arquivoEntrada, arquivoIndice);
             break;
         
         case 8:
-            scanf("%s %s %d", arquivoEntrada, arquivoSaida, &n);
-            select_where_btree(arquivoEntrada, arquivoSaida, n);
+            scanf("%s %s %d", arquivoEntrada, arquivoIndice, &n);
+            select_where_btree(arquivoEntrada, arquivoIndice, n);
             break;
         
         case 9:
-            scanf("%s %s %d", arquivoEntrada, arquivoSaida, &n);
-            insert_btree(arquivoEntrada, arquivoSaida, n);
+            scanf("%s %s %d", arquivoEntrada, arquivoIndice, &n);
+            insert_btree(arquivoEntrada, arquivoIndice, n);
             break;
         
         // case 10:

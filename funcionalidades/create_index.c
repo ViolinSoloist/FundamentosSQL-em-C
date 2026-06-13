@@ -7,7 +7,7 @@
 void create_index(const char* ArquivoBin, const char* ArquivoIndiceBin)
 {
     
-    FILE *bin = abrirVerificarInconsistentar(ArquivoBin);
+    FILE *bin = rotinaAbrirArquivo(ArquivoBin, LEITURA);
     FILE *arv = fopen(ArquivoIndiceBin, "wb+");
 
     // Verificação de erro na abertura
@@ -46,7 +46,7 @@ void create_index(const char* ArquivoBin, const char* ArquivoIndiceBin)
     }
     //printf("Total inserido: %d\n", contador);
 
-    finalizarArquivo(bin, false);
+    fclose(bin);
     cab.status = '1';
     gravarCabecalhoArvore(arv, &cab);
     fclose(arv);

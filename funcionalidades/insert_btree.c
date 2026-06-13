@@ -1,107 +1,82 @@
 #include "insert_btree.h"
+#include "manipul_arq.h"
+#include "terminal.h"
+#include "serial.h"
 
-#define DEBUGGAR false
-
-// --------------------------------------------------------------------------------------
-// Função 1: Lida APENAS com a inserção no arquivo de dados binário (.bin)
-// Retorna o byteOffset onde o registro foi gravado para ser usado na Árvore-B
-// --------------------------------------------------------------------------------------
-long logicaInsercaoBinario(FILE* file, Registro* temp) {
+static void logicaInsercaoBTree(FILE* fileDados, FILE* fileIndice, CabecalhoArvore* cabIndice) {
+    // pega valores guardados (TOPO e proxRRN) do arquivo de dados
     int topo, proxRRN;
+    fseek(fileDados, 1, SEEK_SET);
+    fread(&topo, sizeof(int), 1, fileDados);
+    fseek(fileDados, 5, SEEK_SET);
+    fread(&proxRRN, sizeof(int), 1, fileDados);
 
-    // Lê o topo e o proxRRN do cabeçalho
-    fseek(file, 1, SEEK_SET);
-    fread(&topo, sizeof(int), 1, file);
-    fseek(file, 5, SEEK_SET);
-    fread(&proxRRN, sizeof(int), 1, file);
-
-    // Determina o RRN de inserção
-    int rrnInsercao;
-    if (topo != -1){
-        rrnInsercao = topo;
-    } else {
-        rrnInsercao = proxRRN;
-        proxRRN++;          
+    // determina em qual RRN o novo registro será escrito
+    int rrn_inserido; 
+    if (topo != -1) {rrn_inserido = topo;} // reutiliza espaço vazio, se der
+    else {
+        rrn_inserido = proxRRN; 
+        proxRRN++;        
     }
 
-    // Calcula o offset exato do registro
-    long byteOffset = 17 + ((long)rrnInsercao * 80);
+    // encontra o byte exato no arquivo de dados
+    long byteOffset = 17 + (rrn_inserido * 80);
+    fseek(fileDados, byteOffset, SEEK_SET);
 
-    // Salva o próximo elemento da lista de removidos (se existir)
+    // if (reaproveitando espaço, ou topo != -1) { guardamos o próximo removido }
     int prox = -1;
     if (topo != -1){
-        fseek(file, byteOffset + 1, SEEK_SET); // Pula o status '1' de removido no offset
-        fread(&prox, sizeof(int), 1, file);
+        fseek(fileDados, 1, SEEK_CUR);
+        fread(&prox, sizeof(int), 1, fileDados);
     }
 
-    // Grava o novo registro no arquivo de dados no offset calculado
-    fseek(file, byteOffset, SEEK_SET);
+    // le novo registro (user input)
+    Registro temp;
+    lerRegistro(&temp); 
+
+    // reposiciona cursos e grava
+    fseek(fileDados, byteOffset, SEEK_SET);
     char removido = '0';
-    gravarRegistroBin(temp, file, removido, -1);
+    gravarRegistroBin(&temp, fileDados, removido, -1);
 
-    // Atualiza o cabeçalho do arquivo de dados com o novo topo e proxRRN
-    fseek(file, 1, SEEK_SET);
-    fwrite(&prox, sizeof(int), 1, file);
-    fseek(file, 5, SEEK_SET);
-    fwrite(&proxRRN, sizeof(int), 1, file);
+    // atualiza cabeçalho de dados
+    fseek(fileDados, 1, SEEK_SET);
+    fwrite(&prox, sizeof(int), 1, fileDados);
+    fseek(fileDados, 5, SEEK_SET);
+    fwrite(&proxRRN, sizeof(int), 1, fileDados);
 
-    // Retorna a posição (offset) para a Árvore-B
-    return byteOffset; 
+    // ---------- ARVORE B ----------------------
+    // * após inserir fisicamente => pegar chave (codEstacao) e o local onde está salvo (rrn_inserido) e "avisa" o índice.
+    
+    ArvoreInserir(fileIndice, cabIndice, temp.codEstacao, rrn_inserido); /// @attention A IMPLEMENTAR AINDA
+
+    free(temp.nomeEstacao);
+    free(temp.nomeLinha);
 }
 
-// --------------------------------------------------------------------------------------
-// Função 2: Lida APENAS com a inserção no arquivo de índices da Árvore-B (.idx)
-// --------------------------------------------------------------------------------------
-void logicaInsercaoIndice(FILE* arv, CabecalhoArvore* cab, int chave, long byteOffset) {
-    ArvoreInserir(arv, cab, chave, byteOffset);
-}
+/// @brief função principal que será chamada na main
+void insert_btree(const char* nomeArquivoDados, const char* nomeArquivoIndice, int n) {
 
-// --------------------------------------------------------------------------------------
-// Função 3: Função principal que une a leitura, gravação no binário e gravação no índice
-// --------------------------------------------------------------------------------------
-void insert_btree(const char* nomeArquivoBin, const char* nomeArquivoArvoreBin, int numeroLeituras){
+    FILE* fileDados = rotinaAbrirArquivo(nomeArquivoDados, ESCRITA); 
+    if (fileDados == NULL) return;
 
-    FILE* bin = abrirVerificarInconsistentar(nomeArquivoBin);
-    FILE* arv = abrirVerificarInconsistentar(nomeArquivoArvoreBin);
-
-    if (bin == NULL || arv == NULL){
-        if (bin) fclose(bin);
-        if (arv) fclose(arv);
+    FILE* fileIndice = rotinaAbrirArquivo(nomeArquivoIndice, ESCRITA); 
+    if (fileIndice == NULL) {
+        finalizarArquivoEscrita(fileDados, false); // fecha de dados se o índice falhar
         return;
     }
 
-    CabecalhoArvore cab;
-    lerCabecalhoArvore(arv, &cab);
+    CabecalhoArvore cabIndice; // lê o cabeçalho da árvore para atualizar
+    lerCabecalhoArvore(fileIndice, &cabIndice);
 
-    // IMPORTANTE: Limpa o '\n' que ficou no buffer do terminal quando o 'scanf' leu a quantidade de inserções
-    getchar();
+    for(int i = 0; i < n; i++) logicaInsercaoBTree(fileDados, fileIndice, &cabIndice);
 
-    for (int i = 0; i < numeroLeituras; i++){
-        Registro temp;
-        
-        // 1. Lê os dados do teclado (apenas UMA vez por repetição)
-        lerRegistro(&temp);
-        
-        // 2. Módulo de gravação de dados: Grava no .bin e pega o offset
-        long byteOffset = logicaInsercaoBinario(bin, &temp);
-        
-        // 3. Módulo de indexação: Grava a chave e o offset na Árvore-B
-        logicaInsercaoIndice(arv, &cab, temp.codEstacao, byteOffset);
+    // finalização (dos arquivos)
+    gravarCabecalhoArvore(fileIndice, &cabIndice);
+    finalizarArquivoEscrita(fileDados, false); /// @attention usar essa função se o arquivo foi aberto como ESCRITA
+    fclose(fileIndice);
 
-        // Libera a memória alocada dinamicamente pela leitura das strings
-        if (temp.nomeEstacao) free(temp.nomeEstacao);
-        if (temp.nomeLinha) free(temp.nomeLinha);
-    }
-    
-    // Finalizações do arquivo de dados
-    atualizarContadoresCabecalho(bin);
-    finalizarArquivo(bin, DEBUGGAR);
+    BinarioNaTela((char*)nomeArquivoDados);
+    BinarioNaTela((char*)nomeArquivoIndice);
 
-    // Finalizações da Árvore-B
-    gravarCabecalhoArvore(arv, &cab);
-    finalizarArquivo(arv, DEBUGGAR);
-
-    // Exibe os hashes na tela para o caso de teste
-    BinarioNaTela((char*)nomeArquivoBin);
-    BinarioNaTela((char*)nomeArquivoArvoreBin);
 }
