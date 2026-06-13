@@ -209,6 +209,9 @@ void FolhaInserirOrdenado(NoArvore* no, int chave, int pr){
 
     // Procura enquanto não acha uma chave no nó maior que a chave que queremos inserir
     for (int i = 0; i < no->nroChaves; i++){
+        if (no->Chaves[i] == chave){
+            return;
+        }
         if (no->Chaves[i] > chave) {
             for (int j = no->nroChaves; j > i; j--){
                 no->Chaves[j] = no->Chaves[j-1];        // Da shift nas chaves antigas pra encaixar a chave nova no lugar dela
@@ -234,6 +237,9 @@ void FolhaInserirOrdenado(NoArvore* no, int chave, int pr){
 void InternoInserirOrdenado(NoArvore* no, int chave, int pr, int direitoRRN){
 
     for (int i = 0; i < no->nroChaves; i++){
+        if (no->Chaves[i] == chave){
+            return;
+        }
         if (no->Chaves[i] > chave){
             for (int j = no->nroChaves; j > i; j--){
                 no->Chaves[j] = no->Chaves[j-1];        // Da shift nas chaves antigas pra encaixar a chave nova no lugar dela
