@@ -210,7 +210,7 @@ void FolhaInserirOrdenado(NoArvore* no, int chave, int pr){
     // Procura enquanto não acha uma chave no nó maior que a chave que queremos inserir
     for (int i = 0; i < no->nroChaves; i++){
         if (no->Chaves[i] > chave) {
-            for (int j = no->nroChaves-1; j > i; j--){
+            for (int j = no->nroChaves; j > i; j--){
                 no->Chaves[j] = no->Chaves[j-1];        // Da shift nas chaves antigas pra encaixar a chave nova no lugar dela
                 no->Pr[j] = no->Pr[j-1];                
             }
@@ -235,7 +235,7 @@ void InternoInserirOrdenado(NoArvore* no, int chave, int pr, int direitoRRN){
 
     for (int i = 0; i < no->nroChaves; i++){
         if (no->Chaves[i] > chave){
-            for (int j = no->nroChaves-1; j > i; j--){
+            for (int j = no->nroChaves; j > i; j--){
                 no->Chaves[j] = no->Chaves[j-1];        // Da shift nas chaves antigas pra encaixar a chave nova no lugar dela
                 no->Pr[j] = no->Pr[j-1];
                 no->P[j+1] = no->P[j];                // Da shift nos ponteiros pra acompanhar o shift das chaves
@@ -275,7 +275,7 @@ ResultadoInsercao split(FILE* arv, CabecalhoArvore* cab, NoArvore* no, int chave
     bool achouChave = false;
     for (int i = 0; i < MAX_NOS; i++){
         if (tempChaves[i] > chaveNova){
-            for (int j = MAX_NOS; j >= i; j--){
+            for (int j = MAX_NOS; j > i; j--){
                 tempChaves[j] = tempChaves[j-1];        // Da shift nas chaves antigas pra encaixar a chave nova no lugar dela
                 tempPr[j] = tempPr[j-1];
                 tempP[j+1] = tempP[j];                // Da shift nos ponteiros pra acompanhar o shift das chaves
@@ -359,7 +359,7 @@ ResultadoInsercao ArvoreInserirRecursiva(FILE* arv, CabecalhoArvore* cab, int at
     // Verifica se é nó folha
     if (no.tipoNo == -1) {
         // Se não estiver cheio, só adiciona na folha
-        printf("  folha RRN=%d nroChaves=%d\n", atualRRN, no.nroChaves);
+        // printf("  folha RRN=%d nroChaves=%d\n", atualRRN, no.nroChaves);
         if (no.nroChaves < MAX_NOS){
             FolhaInserirOrdenado(&no, chave, pr);
             gravarNoArvore(arv, &no, atualRRN);
@@ -377,7 +377,7 @@ ResultadoInsercao ArvoreInserirRecursiva(FILE* arv, CabecalhoArvore* cab, int at
 
         for (int i = 0; i < no.nroChaves; i++){
             if (no.Chaves[i] == chave) {
-                printf("Chave já inserida na árvore");
+                //printf("Chave já inserida na árvore");
                 return resultado;
             }
             if (no.Chaves[i] > chave){
@@ -435,7 +435,7 @@ void ArvoreInserir(FILE* arv, CabecalhoArvore* cab, int chave, int pr) {
 
     // 2º caso: A árvore já tem nós nela, então faz a inserção recursiva
     ResultadoInsercao res = ArvoreInserirRecursiva(arv, cab, cab->noRaiz, chave, pr);
-    printf("houveSplit=%d chavePromovida=%d novoRRN=%d\n", res.houveSplit, res.chavePromovida, res.novoRRN);
+    //printf("houveSplit=%d chavePromovida=%d novoRRN=%d\n", res.houveSplit, res.chavePromovida, res.novoRRN);
     
     // 3º casp: O split voltou propagando até a raiz
     // Precisa criar raiz nova

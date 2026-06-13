@@ -35,7 +35,7 @@ run:
 	./programaTrab
 
 clean:
-	rm -f programaTrab *.o *.bin *.zip
+	rm -f programaTrab *.o *.bin
 
 zip:
 	zip -r entrega.zip * -x "casos_IO/*" "README.md"

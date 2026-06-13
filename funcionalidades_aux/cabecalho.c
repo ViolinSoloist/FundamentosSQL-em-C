@@ -7,7 +7,7 @@ static bool inicializarVariaveis(CamposUsados* campo_usado)
 {
     // usando a heap pra não estourar a memória stack, char** = matriz de char = vetor de string
     // usa-se os nomes e não ID's porque ID's diferentes seriam contabilizados, como os ID's de estações que têm o mesmo nome mas estão em linhas diferentes
-    campo_usado->nomes_vistos = malloc(CONTADOR_MAX * sizeof(char*));
+    campo_usado->nomes_vistos = calloc(CONTADOR_MAX, sizeof(char*));
     campo_usado->pares_vistos = malloc(2 * CONTADOR_MAX * sizeof(Par));
     campo_usado->qtd_estacoes = 0;
     campo_usado->qtd_pares = 0;
@@ -45,7 +45,7 @@ void escreveCabecarioBin(bool seek_inicio, FILE* bin, Cabecalho* head)
 void contarEstacoesEPares(Registro* temporario, CamposUsados* campos)
 {
     // contagem estações únicas (pelo nome)
-    if (strlen(temporario->nomeEstacao) > 0) {
+    if (temporario->nomeEstacao != NULL && strlen(temporario->nomeEstacao) > 0) {
         bool estacaoJaExiste = false;
         for (int i = 0; i < (campos->qtd_estacoes); i++) {
             if (!strcmp(campos->nomes_vistos[i], temporario->nomeEstacao)) {

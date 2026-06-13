@@ -37,14 +37,14 @@ void create_index(const char* ArquivoBin, const char* ArquivoIndiceBin)
         } else {
             Registro temp;
             binToStruct(&temp, bin);
-            printf("Inserindo chave %d offset %ld\n", temp.codEstacao, offsetAtual);  // debug
+            //printf("Inserindo chave %d offset %ld\n", temp.codEstacao, offsetAtual);  // debug
             ArvoreInserir(arv, &cab, temp.codEstacao, offsetAtual);
-            printf("Inserido! nroNos=%d\n", cab.nroNos);  // debug
+            //printf("Inserido! nroNos=%d\n", cab.nroNos);  // debug
             offsetAtual += TAM_REGISTRO;
             contador++;
         }
     }
-    printf("Total inserido: %d\n", contador);
+    //printf("Total inserido: %d\n", contador);
 
     finalizarArquivo(bin, false);
     cab.status = '1';
