@@ -11,6 +11,10 @@
 #include "select_where.h"
 #include "insert.h"
 #include "update.h"
+#include "../arvoreB/arvoreB.h"
+#include "create_index.h"
+#include "select_where_btree.h"
+#include "insert_btree.h"
 
 #include "arvoreB.h"
 #include "insert_btree.h"
@@ -70,28 +74,24 @@ int main() {
 			break;
 
         case 7:
-            // CREATE INDEX: cria a árvore a partir de um arquivo bin
-            scanf("%s %s", arquivoEntrada, arquivoIndice);
-            // create_index(arquivoEntrada, arquivoIndice); // a ser implementado
+            scanf("%s %s", arquivoEntrada, arquivoSaida);
+            create_index(arquivoEntrada, arquivoSaida);
             break;
-
+        
         case 8:
-            // SELECT COM ÍNDICE: busca usando B-Tree
-            scanf("%s %s", arquivoEntrada, arquivoIndice);
-            // select_btree(arquivoEntrada, arquivoIndice); // a ser implementado
+            scanf("%s %s %d", arquivoEntrada, arquivoSaida, &n);
+            select_where_btree(arquivoEntrada, arquivoSaida, n);
             break;
-
+        
         case 9:
-            // INSERT COM ÍNDICE: insere no arquivo de dados e na Árvore B
-            scanf("%s %s %d", arquivoEntrada, arquivoIndice, &n);
-            insert_btree(arquivoEntrada, arquivoIndice, n);
+            scanf("%s %s %d", arquivoEntrada, arquivoSaida, &n);
+            insert_btree(arquivoEntrada, arquivoSaida, n);
             break;
-
-        case 10:
-            // DELETE COM ÍNDICE: remove do arquivo de dados e da Árvore B
-            scanf("%s %s %d", arquivoEntrada, arquivoIndice, &n);
-            // delete_btree(arquivoEntrada, arquivoIndice, n); // a ser implementado (por mim)
-            break;
+        
+        // case 10:
+        //     scanf("%s %s %d", arquivoEntrada, arquivoSaida, &n);
+        //     delete_btree(arquivoEntrada, arquivoSaida, n);
+        //     break;
 
         default:
             printf("Falha no processamento do arquivo.\n");

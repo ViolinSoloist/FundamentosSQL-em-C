@@ -7,7 +7,9 @@
 
 #include "estruturas.h"
 
-#define MAX_NOS 3
+#define ORDEM 4
+#define MAX_NOS ORDEM-1
+#define MIN_NOS ORDEM/2
 #define MAX_PONTEIROS 4
 #define TAM_CABECALHO 17
 #define TAM_NO 53

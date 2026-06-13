@@ -131,6 +131,27 @@ void lerNoArvore(FILE* arv, NoArvore* no, int RRN) {
     fread(no->P, sizeof(int), MAX_PONTEIROS, arv);
 }
 
+// Ve qual o RRN na criação de um novo nó
+int alocaRRN(FILE* arv, CabecalhoArvore* cab){
+    int novoRRN;
+
+    // Se a pilha de lógicamente removidos não está vazia, pega o RRN sobrando que ela aponta
+    // e atualiza o topo com o valor do campo "próximo" do nó que o topo apontava
+    if (cab->topo != -1){
+        NoArvore temp;
+        novoRRN = cab->topo;
+        lerNoArvore(arv, &temp, novoRRN);
+        cab->topo = temp.proximo;
+        return novoRRN;
+    
+    // Caso contrário, só pega o valor do próxRRN e atualiza ele
+    } else {
+        novoRRN= cab->proxRRN;
+        cab->proxRRN++;
+        return novoRRN;
+    }
+}
+
 
 /*
 ----------------------------------------------------------------------------------
@@ -142,7 +163,7 @@ Implementação das funcionalidades básicas da Árvore B: buscar, inserir e rem
 // FUNÇÕES PARA A BUSCA NA ÁRVORE B
 
 // Função auxiliar para fazer a busca recursiva na árvore B
-static int ArvoreBuscarRecursiva(FILE* arv, int RRN, int chave) {
+int ArvoreBuscarRecursiva(FILE* arv, int RRN, int chave) {
     if (RRN == -1) {
         return -1;
     }
@@ -183,17 +204,268 @@ int ArvoreBuscar(FILE* arv, CabecalhoArvore* cab, int chave) {
 // --------------------------------------
 // FUNÇÕES PARA A INSERÇÃO NA ÁRVORE B
 
-void split();
-void InserirOrdenado(NoArvore* no, int chave){
+// Função para inserir ordenado em um nó folha, uma vez que já determinado que ele não está cheio
+void FolhaInserirOrdenado(NoArvore* no, int chave, int pr){
+
+    // Procura enquanto não acha uma chave no nó maior que a chave que queremos inserir
     for (int i = 0; i < no->nroChaves; i++){
         if (no->Chaves[i] > chave) {
-            for (int j = no->nroChaves-1; j >= i; j++)
-                no->Chaves[j] = no->Chaves[j-1];
+            for (int j = no->nroChaves; j > i; j--){
+                no->Chaves[j] = no->Chaves[j-1];        // Da shift nas chaves antigas pra encaixar a chave nova no lugar dela
+                no->Pr[j] = no->Pr[j-1];                
+            }
             
             no->Chaves[i] = chave;
+            no->Pr[i] = pr;
+            no->nroChaves++;
+            return;
         }
     }
+
+    // Se não achou nada no for, é por que a chave nova é maior que as outras no nó
+    int pos = no->nroChaves;
+    no->Chaves[pos] = chave;
+    no->Pr[pos] = pr;
+    no->nroChaves++;
+    return;
 }
-void ArvoreInserirRecursiva();
-void ArvoreInserir();
+
+// Função para inserir ordenado em um nó interno, uma vez já determinado que ele não está cheio
+void InternoInserirOrdenado(NoArvore* no, int chave, int pr, int direitoRRN){
+
+    for (int i = 0; i < no->nroChaves; i++){
+        if (no->Chaves[i] > chave){
+            for (int j = no->nroChaves; j > i; j--){
+                no->Chaves[j] = no->Chaves[j-1];        // Da shift nas chaves antigas pra encaixar a chave nova no lugar dela
+                no->Pr[j] = no->Pr[j-1];
+                no->P[j+1] = no->P[j];                // Da shift nos ponteiros pra acompanhar o shift das chaves
+            }
+            
+            no->Chaves[i] = chave;
+            no->Pr[i] = pr;
+            no->P[i+1] = direitoRRN;
+            no->nroChaves++;
+            return;
+        }
+    }
+
+    // Se não achou nada no for, é por que a chave nova é maior que as outras no nó
+    int pos = no->nroChaves;
+    no->Chaves[pos] = chave;
+    no->Pr[pos] = pr;
+    no->nroChaves++;
+    no->P[no->nroChaves] = direitoRRN;
+    return;
+}
+
+ResultadoInsercao split(FILE* arv, CabecalhoArvore* cab, NoArvore* no, int chaveNova, int prNovo, int atualRRN, int direitoRRN){
+
+    // Cria nó temporário e inicializa ele com tamanho maior e a chave que seria adicionada a mais
+    int tempChaves[MAX_NOS+1];
+    int tempPr[MAX_NOS+1];
+    int tempP[MAX_PONTEIROS+1];
+
+    for (int i = 0; i < MAX_NOS; i++){
+        tempChaves[i] = no->Chaves[i];
+        tempPr[i] = no->Pr[i];
+        tempP[i] = no->P[i];
+    }
+    tempP[MAX_PONTEIROS-1] = no->P[MAX_PONTEIROS-1];
+
+    bool achouChave = false;
+    for (int i = 0; i < MAX_NOS; i++){
+        if (tempChaves[i] > chaveNova){
+            for (int j = MAX_NOS; j > i; j--){
+                tempChaves[j] = tempChaves[j-1];        // Da shift nas chaves antigas pra encaixar a chave nova no lugar dela
+                tempPr[j] = tempPr[j-1];
+                tempP[j+1] = tempP[j];                // Da shift nos ponteiros pra acompanhar o shift das chaves
+            }
+            
+            tempChaves[i] = chaveNova;
+            tempPr[i] = prNovo;
+            tempP[i+1] = direitoRRN;
+            achouChave = true;
+            break;
+        }
+    }
+
+    // Se não achou nada no for, é por que a chave nova é maior que as outras no nó
+    if (!achouChave){
+        int pos = MAX_NOS;
+        tempChaves[pos] = chaveNova;
+        tempPr[pos] = prNovo;
+        tempP[pos+1] = direitoRRN;
+    }
+    
+    // Pega o nó anterior e mantém só os dois primeiros valores
+    // Será o novo nó esquerdo
+    for (int i = 0; i < MAX_NOS; i++){
+        if (i < 2){
+            no->Chaves[i] = tempChaves[i];
+            no->Pr[i] = tempPr[i];
+            no->P[i] = tempP[i];
+        } else {
+            no->Chaves[i] = -1;
+            no->Pr[i] = -1;
+            no->P[i+1] = -1;
+        }
+    }
+    no->P[2] = tempP[2];
+    no->nroChaves = 2;
+    gravarNoArvore(arv, no, atualRRN);     // Grava no arquivo de indíces
+
+    // Cria o novo nó que será o direito
+    // Inicializa ele com a última chave do nó temporário
+    NoArvore novoNo;
+    NoCriar(&novoNo, no->tipoNo);
+    cab->nroNos++;
+    int novoRRN = alocaRRN(arv, cab);
+    if (no->tipoNo != -1){
+        novoNo.P[0] = tempP[3];   // filho esquerdo do nó direito
+        novoNo.P[1] = tempP[4];   // filho direito do nó direito
+    }
+    novoNo.Chaves[0] = tempChaves[3];
+    novoNo.Pr[0] = tempPr[3];
+    novoNo.nroChaves = 1;
+    gravarNoArvore(arv, &novoNo, novoRRN);  // Grava no arquivo de indíces
+    gravarCabecalhoArvore(arv, cab);        // Atualiza o cabeçalho
+
+    // Cria struct do resultado da inserção passando as informações do split pra fora da função
+    ResultadoInsercao resultado;
+    resultado.chavePromovida = tempChaves[2];
+    resultado.houveSplit = true;
+    resultado.novoRRN = novoRRN;
+    resultado.PRpromovido = tempPr[2];
+
+    return resultado;
+}
+
+ResultadoInsercao ArvoreInserirRecursiva(FILE* arv, CabecalhoArvore* cab, int atualRRN, int chave, int pr){
+
+    ResultadoInsercao resultado;
+    resultado.chavePromovida = -1;
+    resultado.PRpromovido = -1;
+    resultado.novoRRN = -1;
+    resultado.houveSplit = false;
+
+    if (atualRRN == -1) {
+        return resultado;
+    }
+
+    NoArvore no;
+    lerNoArvore(arv, &no, atualRRN);
+    
+    // 1º passo: ve se o nó atual é folha, se não for, ve por qual filho desce
+    // Verifica se é nó folha
+    if (no.tipoNo == -1) {
+        // Se não estiver cheio, só adiciona na folha
+        // printf("  folha RRN=%d nroChaves=%d\n", atualRRN, no.nroChaves);
+        if (no.nroChaves < MAX_NOS){
+            FolhaInserirOrdenado(&no, chave, pr);
+            gravarNoArvore(arv, &no, atualRRN);
+            return resultado;
+        
+        // Se estiver cheio, precisa tratar o split
+        } else {
+            return split(arv, cab, &no, chave, pr, atualRRN, -1);
+        }
+    
+    // Se não for nó folha, encontra por onde ele desce
+    } else {
+        int filhoRRN = -1;
+        bool desceu = false;
+
+        for (int i = 0; i < no.nroChaves; i++){
+            if (no.Chaves[i] == chave) {
+                //printf("Chave já inserida na árvore");
+                return resultado;
+            }
+            if (no.Chaves[i] > chave){
+                filhoRRN = no.P[i];
+                desceu = true;
+                break;
+            }
+        }
+
+        if (!desceu)
+            filhoRRN = no.P[no.nroChaves];
+
+        ResultadoInsercao resultadoFilho = ArvoreInserirRecursiva(arv, cab, filhoRRN, chave, pr);
+
+        if (resultadoFilho.houveSplit){
+            if (no.nroChaves < MAX_NOS){
+                InternoInserirOrdenado(&no, resultadoFilho.chavePromovida, resultadoFilho.PRpromovido, resultadoFilho.novoRRN);
+                gravarNoArvore(arv, &no, atualRRN);
+                resultado.houveSplit = false;
+                return resultado;
+            } else {
+                return split(arv, cab, &no, resultadoFilho.chavePromovida, resultadoFilho.PRpromovido, atualRRN, resultadoFilho.novoRRN);
+            }
+        }
+
+        return resultado;
+    }
+
+}
+
+void ArvoreInserir(FILE* arv, CabecalhoArvore* cab, int chave, int pr) {
+    if (arv == NULL || cab == NULL) {
+        printf("Falha no processamento do arquivo.\n");
+        return;
+    }
+
+    // 1º caso: Árvore vazia
+    if (cab->noRaiz == -1) {
+        NoArvore novaRaiz;
+        NoCriar(&novaRaiz, -1); // Cria o nó como sendo folha e raíz ao mesmo tempo
+        
+        // Inicializa o nó raiz
+        novaRaiz.Chaves[0] = chave;
+        novaRaiz.Pr[0] = pr;
+        novaRaiz.nroChaves = 1;
+
+        int novoRRN = alocaRRN(arv, cab);
+        gravarNoArvore(arv, &novaRaiz, novoRRN);
+
+        cab->noRaiz = novoRRN;
+        cab->nroNos++;
+        gravarCabecalhoArvore(arv, cab);
+        return;
+    }
+
+    // 2º caso: A árvore já tem nós nela, então faz a inserção recursiva
+    ResultadoInsercao res = ArvoreInserirRecursiva(arv, cab, cab->noRaiz, chave, pr);
+    //printf("houveSplit=%d chavePromovida=%d novoRRN=%d\n", res.houveSplit, res.chavePromovida, res.novoRRN);
+    
+    // 3º casp: O split voltou propagando até a raiz
+    // Precisa criar raiz nova
+    if (res.houveSplit) {
+        NoArvore novaRaiz;
+        NoCriar(&novaRaiz, 0); // Cria como nó interno
+        
+        novaRaiz.Chaves[0] = res.chavePromovida;
+        novaRaiz.Pr[0] = res.PRpromovido;
+        novaRaiz.P[0] = cab->noRaiz; // O filho esquerdo é a raiz antiga
+        novaRaiz.P[1] = res.novoRRN; // O filho direito é o nó recém criado no split
+        novaRaiz.nroChaves = 1;
+
+        NoArvore filhoEsquerdo;
+        NoArvore filhoDireito;
+        int esquerdoRRN = novaRaiz.P[0];
+        int direitoRRN = novaRaiz.P[1];
+        lerNoArvore(arv, &filhoEsquerdo, esquerdoRRN);
+        lerNoArvore(arv, &filhoDireito, direitoRRN);
+        filhoEsquerdo.tipoNo = (filhoEsquerdo.P[0] == -1) ? -1 : 1;
+        filhoDireito.tipoNo = (filhoDireito.P[0] == -1) ? -1 : 1;
+        gravarNoArvore(arv, &filhoEsquerdo, esquerdoRRN);
+        gravarNoArvore(arv, &filhoDireito, direitoRRN);
+
+        int novoRRN = alocaRRN(arv, cab);
+        gravarNoArvore(arv, &novaRaiz, novoRRN);
+
+        cab->noRaiz = novoRRN;
+        cab->nroNos++;
+        gravarCabecalhoArvore(arv, cab);
+    }
+}
 
