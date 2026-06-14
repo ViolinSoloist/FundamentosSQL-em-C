@@ -87,7 +87,7 @@ Declarando funções básicas da Árvore-B: Busca, inserção e remoção
 
 // Busca um registro na Árvore-B, retornando o RRN do nó onde a chave foi encontrada ou -1 se não encontrada
 int ArvoreBuscar(FILE* arv, CabecalhoArvore* cab, int chave);   
-void ArvoreInserir(FILE* arv, CabecalhoArvore* cab, int chave, int RRN);        // Insere um registro na Árvore-B
+void ArvoreInserir(FILE* arv, CabecalhoArvore* cab, int chave, int pr);        // Insere um registro na Árvore-B
 void ArvoreRemover(FILE* arv, CabecalhoArvore* cab, int chave);                 // Remove um registro da Árvore-B
 
 

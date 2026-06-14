@@ -2,42 +2,42 @@
 
 
 // Função para ler diretamente da entrada para um registro temporário
-void lerRegistro(Registro* temp){
-    char buffer[200]; // Buffer temporário para ler qualquer campo
+void lerRegistro(Registro* temp) {
+    char buffer[200]; // Buffer temporário para ler as strings e os números
 
-    // codEstacao
-    ScanQuoteString(buffer);
-    temp->codEstacao = (strcmp(buffer, "") == 0) ? -1 : atoi(buffer);
+    // codEstacao (inteiro ou "NULO")
+    scanf("%s", buffer);
+    temp->codEstacao = (strcmp(buffer, "NULO") == 0) ? -1 : atoi(buffer);
 
-    // nomeEstacao
+    // nomeEstacao (string com aspas -> usa ScanQuoteString)
     ScanQuoteString(buffer);
     temp->nomeEstacao = malloc(strlen(buffer) + 1);
     strcpy(temp->nomeEstacao, buffer);
 
-    // codLinha
-    ScanQuoteString(buffer);
-    temp->codLinha = (strcmp(buffer, "") == 0) ? -1 : atoi(buffer);
+    // codLinha (inteiro ou "NULO")
+    scanf("%s", buffer);
+    temp->codLinha = (strcmp(buffer, "NULO") == 0) ? -1 : atoi(buffer);
 
-    // nomeLinha
+    // nomeLinha (string com aspas -> usa ScanQuoteString)
     ScanQuoteString(buffer);
     temp->nomeLinha = malloc(strlen(buffer) + 1);
     strcpy(temp->nomeLinha, buffer);
 
-    // codProxEstacao
-    ScanQuoteString(buffer);
-    temp->codProxEstacao = (strcmp(buffer, "") == 0) ? -1 : atoi(buffer);
+    // codProxEstacao (inteiro ou "NULO")
+    scanf("%s", buffer);
+    temp->codProxEstacao = (strcmp(buffer, "NULO") == 0) ? -1 : atoi(buffer);
 
-    // distProxEstacao
-    ScanQuoteString(buffer);
-    temp->distProxEstacao = (strcmp(buffer, "") == 0) ? -1 : atoi(buffer);
+    // distProxEstacao (inteiro ou "NULO")
+    scanf("%s", buffer);
+    temp->distProxEstacao = (strcmp(buffer, "NULO") == 0) ? -1 : atoi(buffer);
 
-    // codLinhaIntegra
-    ScanQuoteString(buffer);
-    temp->codLinhaIntegra = (strcmp(buffer, "") == 0) ? -1 : atoi(buffer);
+    // codLinhaIntegra (inteiro ou "NULO")
+    scanf("%s", buffer);
+    temp->codLinhaIntegra = (strcmp(buffer, "NULO") == 0) ? -1 : atoi(buffer);
 
-    // codEstIntegra
-    ScanQuoteString(buffer);
-    temp->codEstIntegra = (strcmp(buffer, "") == 0) ? -1 : atoi(buffer);
+    // codEstIntegra (inteiro ou "NULO")
+    scanf("%s", buffer);
+    temp->codEstIntegra = (strcmp(buffer, "NULO") == 0) ? -1 : atoi(buffer);
 }
 
 void lerLinhaBusca(FILE* file, ArgumentosCallback* args){

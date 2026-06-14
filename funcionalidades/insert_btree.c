@@ -48,17 +48,20 @@ static void logicaInsercaoBTree(FILE* fileDados, FILE* fileIndice, CabecalhoArvo
     // ---------- ARVORE B ----------------------
     // * após inserir fisicamente => pegar chave (codEstacao) e o local onde está salvo (rrn_inserido) e "avisa" o índice.
     
-    ArvoreInserir(fileIndice, cabIndice, temp.codEstacao, rrn_inserido); /// @attention A IMPLEMENTAR AINDA
+    ArvoreInserir(fileIndice, cabIndice, temp.codEstacao, byteOffset); /// @attention A IMPLEMENTAR AINDA
 
-    free(temp.nomeEstacao);
-    free(temp.nomeLinha);
+    if (temp.nomeEstacao) free(temp.nomeEstacao);
+    if (temp.nomeLinha) free(temp.nomeLinha);
 }
 
 /// @brief função principal que será chamada na main
 void insert_btree(const char* nomeArquivoDados, const char* nomeArquivoIndice, int n) {
 
     FILE* fileDados = rotinaAbrirArquivo(nomeArquivoDados, ESCRITA); 
-    if (fileDados == NULL) return;
+    if (fileDados == NULL) {
+        finalizarArquivoEscrita(fileDados, false);
+        return;
+    }
 
     FILE* fileIndice = rotinaAbrirArquivo(nomeArquivoIndice, ESCRITA); 
     if (fileIndice == NULL) {
