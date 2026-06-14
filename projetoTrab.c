@@ -11,10 +11,11 @@
 #include "select_where.h"
 #include "insert.h"
 #include "update.h"
-#include "../arvoreB/arvoreB.h"
+#include "arvoreB.h"
 #include "create_index.h"
 #include "select_where_btree.h"
 #include "insert_btree.h"
+#include "delete_btree.h"
 
 int main() { 
 
@@ -85,10 +86,10 @@ int main() {
             insert_btree(arquivoEntrada, arquivoIndice, n);
             break;
         
-        // case 10:
-        //     scanf("%s %s %d", arquivoEntrada, arquivoSaida, &n);
-        //     delete_btree(arquivoEntrada, arquivoSaida, n);
-        //     break;
+        case 10:
+            scanf("%s %s %d", arquivoEntrada, arquivoSaida, &n);
+            delete_btree(arquivoEntrada, arquivoSaida, n);
+            break;
 
         default:
             printf("Falha no processamento do arquivo.\n");
