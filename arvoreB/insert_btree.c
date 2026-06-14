@@ -4,51 +4,50 @@
 #include "serial.h"
 
 static void logicaInsercaoBTree(FILE* fileDados, FILE* fileIndice, CabecalhoArvore* cabIndice) {
-    // pega valores guardados (TOPO e proxRRN) do arquivo de dados
+    Registro temp;
+    lerRegistro(&temp); 
+
+    // encontrou na arvore => ATIVO => aborta a inserção (evita de quebrar a pilha)
+    if (ArvoreBuscar(fileIndice, cabIndice, temp.codEstacao) != -1) {
+        free(temp.nomeEstacao);
+        free(temp.nomeLinha);
+        return; 
+    }
+
+    // a partir daqui, a chave é nova OU o registro antigo estava removido.
     int topo, proxRRN;
     fseek(fileDados, 1, SEEK_SET);
     fread(&topo, sizeof(int), 1, fileDados);
     fseek(fileDados, 5, SEEK_SET);
     fread(&proxRRN, sizeof(int), 1, fileDados);
 
-    // determina em qual RRN o novo registro será escrito
     int rrn_inserido; 
-    if (topo != -1) {rrn_inserido = topo;} // reutiliza espaço vazio, se der
-    else {
+    int prox = -1;
+    
+    if (topo != -1) {
+        rrn_inserido = topo; // reaproveita espaço da pilha
+        long byteOffset = 17 + (rrn_inserido * 80);
+        fseek(fileDados, byteOffset + 1, SEEK_SET); // +1 para pular o char 'removido'
+        fread(&prox, sizeof(int), 1, fileDados);
+    } else {
         rrn_inserido = proxRRN; 
         proxRRN++;        
     }
 
-    // encontra o byte exato no arquivo de dados
+    // gravação física no .bin
     long byteOffset = 17 + (rrn_inserido * 80);
-    fseek(fileDados, byteOffset, SEEK_SET);
-
-    // if (reaproveitando espaço, ou topo != -1) { guardamos o próximo removido }
-    int prox = -1;
-    if (topo != -1){
-        fseek(fileDados, 1, SEEK_CUR);
-        fread(&prox, sizeof(int), 1, fileDados);
-    }
-
-    // le novo registro (user input)
-    Registro temp;
-    lerRegistro(&temp); 
-
-    // reposiciona cursos e grava
     fseek(fileDados, byteOffset, SEEK_SET);
     char removido = '0';
     gravarRegistroBin(&temp, fileDados, removido, -1);
 
-    // atualiza cabeçalho de dados
+    // atualiza cabeçalho do .bin
     fseek(fileDados, 1, SEEK_SET);
     fwrite(&prox, sizeof(int), 1, fileDados);
     fseek(fileDados, 5, SEEK_SET);
     fwrite(&proxRRN, sizeof(int), 1, fileDados);
 
-    // ---------- ARVORE B ----------------------
-    // * após inserir fisicamente => pegar chave (codEstacao) e o local onde está salvo (rrn_inserido) e "avisa" o índice.
-    
-    ArvoreInserir(fileIndice, cabIndice, temp.codEstacao, rrn_inserido); /// @attention A IMPLEMENTAR AINDA
+    // gravação no índice .btree
+    ArvoreInserir(fileIndice, cabIndice, temp.codEstacao, rrn_inserido); 
 
     free(temp.nomeEstacao);
     free(temp.nomeLinha);
@@ -71,9 +70,13 @@ void insert_btree(const char* nomeArquivoDados, const char* nomeArquivoIndice, i
 
     for(int i = 0; i < n; i++) logicaInsercaoBTree(fileDados, fileIndice, &cabIndice);
 
+    atualizarContadoresCabecalho(fileDados);
+
     // finalização (dos arquivos)
-    gravarCabecalhoArvore(fileIndice, &cabIndice);
     finalizarArquivoEscrita(fileDados, false); /// @attention usar essa função se o arquivo foi aberto como ESCRITA
+
+    cabIndice.status = '1'; // só pra ter certeza
+    gravarCabecalhoArvore(fileIndice, &cabIndice);
     fclose(fileIndice);
 
     BinarioNaTela((char*)nomeArquivoDados);

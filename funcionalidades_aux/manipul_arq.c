@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+
 #include "estruturas.h"
+#include "cabecalho.h"
 
 // lembrando que é em rb+
 FILE* rotinaAbrirArquivo(const char* nomeArqBin, TipoAbertura tipo)
@@ -36,7 +38,7 @@ FILE* rotinaAbrirArquivo(const char* nomeArqBin, TipoAbertura tipo)
 
 // deixa como consistente e finaliza o arquivo que foi aberto como escrita
 void finalizarArquivoEscrita(FILE* file, bool debuggar) {
-    
+
     char status = '1';
     fseek(file, 0, SEEK_SET);
     fwrite(&status, sizeof(char), 1, file);
