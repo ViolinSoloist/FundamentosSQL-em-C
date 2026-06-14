@@ -11,7 +11,7 @@
 #include "terminal.h"
 #include "serial.h"
 #include "manipul_arq.h"
-#include "../arvoreB/arvoreB.h"
+#include "arvoreB.h"
 
 void select_where_btree(const char* nomeArquivoBin, const char* nomeArquivoArvoreBin, int numeroBuscas);
 
