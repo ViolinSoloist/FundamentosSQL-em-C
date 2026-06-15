@@ -7,6 +7,57 @@
 #include "manipul_arq.h"
 #include "terminal.h"
 
+typedef enum {
+    ESTACOES,
+    PARES,
+} tipoContavel; // basicamente pra indicar os dois tipo possíveis de contaveis que existem
+
+// struct que contém variáveis que servem de parâmetro para as funções auxilizares de CONTAGEM (atualização do nroEstacoes e nroPares)
+typedef struct {
+    Registro* ativos;
+    tipoContavel tipo;
+    int i;
+} paramFuncContador;
+
+/// @brief função auxiliar que faz a contagem de um dado contável (nroEstacoes ou nroParesEstacoes) 
+static void contador(paramFuncContador* args, int* contavel) {
+    
+    bool repetido = false;
+
+    for (int j=0; j<(args->i); j++) {
+
+        bool condicaoRepetido = (args->tipo == ESTACOES ?
+        (args->ativos)[j].nomeEstacao != NULL && strcmp((args->ativos)[args->i].nomeEstacao, args->ativos[j].nomeEstacao) == 0 :
+        (args->ativos)[args->i].codEstacao == (args->ativos)[j].codEstacao && (args->ativos)[args->i].codProxEstacao == (args->ativos)[j].codProxEstacao
+        );
+
+        if (condicaoRepetido) { repetido = true; break; }
+    }
+
+    if (!repetido) (*contavel)++;
+}
+
+
+/// @related auxiliar de recalculiarContadores
+/// @return (atualizado) nroEstacoes & nroParesEstacoes 
+static Par recontagem(paramFuncContador* args, Par* contadores) {
+
+    // estacoes únicas
+    if ((args->ativos)[args->i].nomeEstacao != NULL && strlen((args->ativos)[args->i].nomeEstacao) > 0) {
+        contador(args, contadores->origem);
+    }
+    
+    // pares únicos
+    if ((args->ativos)[args->i].codEstacao != -1 && (args->ativos)[args->i].codProxEstacao != -1) {
+        contador(args, contadores->destino);
+    }
+
+    Par contadores_atualizados;
+    contadores_atualizados.origem = contadores->origem; contadores_atualizados.destino = contadores->destino;
+    return contadores_atualizados;
+}
+
+
 /// @details após todas as remoções lógicas, precisamos recontar as estações únicas e pares únicos
 /// @param fileDados 
 static void recalcularContadores(FILE* fileDados) {
@@ -30,42 +81,20 @@ static void recalcularContadores(FILE* fileDados) {
         }
     }
     
-    int nroEstacoes = 0;
-    int nroPares = 0;
-    
-    for (int i = 0; i < numAtivos; i++) {
+    // preenchimento dos parâmetros das funções de contagem
+    paramFuncContador args; args.ativos = ativos;
+    Par contadores; // nroEstacoes, nroParesEstacoes
+    contadores.origem = 0; contadores.destino = 0;
 
-        // ---------- CONTAGEM ---------------------
-        // estações únicas
-        if (ativos[i].nomeEstacao != NULL && strlen(ativos[i].nomeEstacao) > 0) {
-            bool repetido = false;
-            for (int j = 0; j < i; j++) {
-                if (ativos[j].nomeEstacao != NULL && strcmp(ativos[i].nomeEstacao, ativos[j].nomeEstacao) == 0) {
-                    repetido = true;
-                    break;
-                }
-            }
-            if (!repetido) nroEstacoes++;
-        }
-        
-        // pares únicos
-        if (ativos[i].codEstacao != -1 && ativos[i].codProxEstacao != -1) {
-            bool repetido = false;
-            for (int j = 0; j < i; j++) {
-                if (ativos[i].codEstacao == ativos[j].codEstacao && 
-                    ativos[i].codProxEstacao == ativos[j].codProxEstacao) {
-                    repetido = true;
-                    break;
-                }
-            }
-            if (!repetido) nroPares++;
-        }
+    for (int i=0; i<numAtivos; i++) { // loop em que ocorre a recontagem
+        args.i = i;
+        contadores = recontagem(&args, &contadores);
     }
 
     // gravação cabeçalho: nroEstacoes (offset 9) nroParesEstacoes (offset13)
     fseek(fileDados, 9, SEEK_SET);
-    fwrite(&nroEstacoes, sizeof(int), 1, fileDados);
-    fwrite(&nroPares, sizeof(int), 1, fileDados);
+    fwrite(&contadores.origem, sizeof(int), 1, fileDados); // origem = nroEstacoes
+    fwrite(&contadores.destino, sizeof(int), 1, fileDados); // destino = nroParesEstacoes
     
     // desalocação de memória antes de terminar a função
     for (int i = 0; i < numAtivos; i++) {
