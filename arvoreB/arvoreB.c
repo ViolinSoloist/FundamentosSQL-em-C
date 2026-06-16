@@ -472,6 +472,22 @@ void ArvoreInserir(FILE* arv, CabecalhoArvore* cab, int chave, int pr) {
 // ------------------ REMOÇÃO -----------------------
 // --------------------------------------------------
 
+/// @author Erik
+
+/// @def struct que contem os parâmetros (estruturas, variáveis, etc) usadas na remoção na arvore
+typedef struct {
+    FILE* arv;
+    CabecalhoArvore* cab;
+    NoArvore* noAtual;
+    NoArvore* noPai;
+    NoArvore* noDestruido;
+    int* rrnAtual;
+    int* rrnPai;
+    int* rrnDestruido;
+    int* indiceFilho;
+    int* chave;
+} ParamRemocao;
+
 // função para empilhar um nó destruído na pilha de registros logicamente removidos da árvore
 static void empilharNoRemovido(FILE* arv, CabecalhoArvore* cab, int rrnDestruido, NoArvore* noDestruido) {
     noDestruido->removido = '1';
@@ -486,310 +502,352 @@ static void empilharNoRemovido(FILE* arv, CabecalhoArvore* cab, int rrnDestruido
     gravarCabecalhoArvore(arv, cab);
 }
 
-/// @brief ROTINA DOS 4 CASOS PARA TRATAR UNDERFLOW
-static void tratarUnderflow(FILE* arv, CabecalhoArvore* cab, int rrnAtual, NoArvore* noAtual, int rrnPai, NoArvore* noPai, int indiceFilho) {
+static bool redistribuicaoDireita(ParamRemocao* args) {
+
+    int rrnIrmaoDir = args->noPai->P[*args->indiceFilho + 1];
+    NoArvore irmaoDir;
+    lerNoArvore(args->arv, &irmaoDir, rrnIrmaoDir);
     
-    // 1) - REDISTRIBUIÇÃO A DIREITA
-    if (indiceFilho < noPai->nroChaves) {
-        int rrnIrmaoDir = noPai->P[indiceFilho + 1];
-        NoArvore irmaoDir;
-        lerNoArvore(arv, &irmaoDir, rrnIrmaoDir);
-        
-        if (irmaoDir.nroChaves > 1) { 
-            // total de chaves a distribuir = 1 (pai) + as chaves do irmão
-            int totalChaves = 1 + irmaoDir.nroChaves;
-            int combC[5], combPr[5], combP[6];
-            
-            // puxa chave do pai
-            combC[0] = noPai->Chaves[indiceFilho];
-            combPr[0] = noPai->Pr[indiceFilho];
-            combP[0] = noAtual->P[0];
-            
-            // puxa tudo do irmão da direita
-            for (int i = 0; i < irmaoDir.nroChaves; i++) {
-                combC[i + 1] = irmaoDir.Chaves[i];
-                combPr[i + 1] = irmaoDir.Pr[i];
-                combP[i + 1] = irmaoDir.P[i];
-            }
-            combP[irmaoDir.nroChaves + 1] = irmaoDir.P[irmaoDir.nroChaves];
-            
-            // pega tudo que pegou no passo antes e distribui METADE para o nó atual
-            int numEsq = totalChaves / 2;
-            noAtual->nroChaves = numEsq;
-            for (int i = 0; i < numEsq; i++) {
-                noAtual->Chaves[i] = combC[i];
-                noAtual->Pr[i] = combPr[i];
-                noAtual->P[i] = combP[i];
-            }
-            noAtual->P[numEsq] = combP[numEsq];
-            
-            // limpa as posições restantes no nó atual
-            for(int i = numEsq; i < MAX_NOS; i++) { noAtual->Chaves[i] = -1; noAtual->Pr[i] = -1; }
-            for(int i = numEsq + 1; i < MAX_PONTEIROS; i++) { noAtual->P[i] = -1; }
-            
-            // A chave do meio ascende e fica ao lado do Pai (na verdade vira o pai)
-            noPai->Chaves[indiceFilho] = combC[numEsq];
-            noPai->Pr[indiceFilho] = combPr[numEsq];
-            
-            // resto fica no irmão da direita
-            int numDir = totalChaves - numEsq - 1;
-            irmaoDir.nroChaves = numDir;
-            for (int i = 0; i < numDir; i++) {
-                irmaoDir.Chaves[i] = combC[numEsq + 1 + i];
-                irmaoDir.Pr[i] = combPr[numEsq + 1 + i];
-                irmaoDir.P[i] = combP[numEsq + 1 + i];
-            }
-            irmaoDir.P[numDir] = combP[totalChaves];
-            
-            // Limpa as posições restantes no irmão direito
-            for(int i = numDir; i < MAX_NOS; i++) { irmaoDir.Chaves[i] = -1; irmaoDir.Pr[i] = -1; }
-            for(int i = numDir + 1; i < MAX_PONTEIROS; i++) { irmaoDir.P[i] = -1; }
-            
-            gravarNoArvore(arv, noAtual, rrnAtual);
-            gravarNoArvore(arv, &irmaoDir, rrnIrmaoDir);
-            gravarNoArvore(arv, noPai, rrnPai);
-            return;
-        }
+    if (irmaoDir.nroChaves <= 1) return false; // continua apenas se tiver chaves o suficiente
+
+    // total de chaves a distribuir = 1 (pai) + as chaves do irmão
+    int totalChaves = 1 + irmaoDir.nroChaves;
+    int combC[5], combPr[5], combP[6];
+    
+    // puxa chave do pai
+    combC[0] = args->noPai->Chaves[*args->indiceFilho];
+    combPr[0] = args->noPai->Pr[*args->indiceFilho];
+    combP[0] = args->noAtual->P[0];
+    
+    // puxa tudo do irmão da direita
+    for (int i = 0; i < irmaoDir.nroChaves; i++) {
+        combC[i + 1] = irmaoDir.Chaves[i];
+        combPr[i + 1] = irmaoDir.Pr[i];
+        combP[i + 1] = irmaoDir.P[i];
     }
+    combP[irmaoDir.nroChaves + 1] = irmaoDir.P[irmaoDir.nroChaves];
     
-    // 2) - REDISTRIBUIÇÃO A ESQUERDA 
+    // pega tudo que pegou no passo antes e distribui METADE para o nó atual
+    int numEsq = totalChaves / 2;
+    args->noAtual->nroChaves = numEsq;
+    for (int i=0; i<numEsq; i++) {
+        args->noAtual->Chaves[i] = combC[i];
+        args->noAtual->Pr[i] = combPr[i];
+        args->noAtual->P[i] = combP[i];
+    }
+    args->noAtual->P[numEsq] = combP[numEsq];
+    
+    // limpa as posições restantes no nó atual
+    for(int i=numEsq; i<MAX_NOS; i++) { args->noAtual->Chaves[i] = -1; args->noAtual->Pr[i] = -1; }
+    for(int i=numEsq+1; i<MAX_PONTEIROS; i++) { args->noAtual->P[i] = -1; }
+    
+    // A chave do meio ascende e fica ao lado do Pai (na verdade vira o pai)
+    args->noPai->Chaves[*args->indiceFilho] = combC[numEsq];
+    args->noPai->Pr[*args->indiceFilho] = combPr[numEsq];
+    
+    // resto fica no irmão da direita
+    int numDir = totalChaves - numEsq - 1;
+    irmaoDir.nroChaves = numDir;
+    for (int i=0; i<numDir; i++) {
+        irmaoDir.Chaves[i] = combC[numEsq + 1 + i];
+        irmaoDir.Pr[i] = combPr[numEsq + 1 + i];
+        irmaoDir.P[i] = combP[numEsq + 1 + i];
+    }
+    irmaoDir.P[numDir] = combP[totalChaves];
+    
+    // Limpa as posições restantes no irmão direito
+    for(int i=numDir; i<MAX_NOS; i++) { irmaoDir.Chaves[i] = -1; irmaoDir.Pr[i] = -1; }
+    for(int i=numDir+1; i<MAX_PONTEIROS; i++) { irmaoDir.P[i] = -1; }
+    
+    gravarNoArvore(args->arv, args->noAtual, *args->rrnAtual);
+    gravarNoArvore(args->arv, &irmaoDir, rrnIrmaoDir);
+    gravarNoArvore(args->arv, args->noPai, *args->rrnPai);
+    return true;
+}
+
+static bool redistribuicaoEsquerda(ParamRemocao* args) {
+
     // BASICAMENTE A MESMA COISA DE ANTES MAS EM VEZ DE PEGAR DA DIREITA E JOGAR NO ATUAL, PEGA DO ATUAL E JOGA NA ESQUERDA, SEGUE A MESMA LÓGICA
-    if (indiceFilho > 0) {
-        int rrnIrmaoEsq = noPai->P[indiceFilho - 1];
-        NoArvore irmaoEsq;
-        lerNoArvore(arv, &irmaoEsq, rrnIrmaoEsq);
-        
-        if (irmaoEsq.nroChaves > 1) {
-            int totalChaves = irmaoEsq.nroChaves + 1;
-            int combC[5], combPr[5], combP[6];
-            
-            // pega todas as chaves e ponteiros do irmão da esquerda
-            for (int i = 0; i < irmaoEsq.nroChaves; i++) {
-                combC[i] = irmaoEsq.Chaves[i];
-                combPr[i] = irmaoEsq.Pr[i];
-                combP[i] = irmaoEsq.P[i];
-            }
-            combP[irmaoEsq.nroChaves] = irmaoEsq.P[irmaoEsq.nroChaves];
-            
-            // puxa a chave do pai para o final do agrupamento
-            combC[irmaoEsq.nroChaves] = noPai->Chaves[indiceFilho - 1];
-            combPr[irmaoEsq.nroChaves] = noPai->Pr[indiceFilho - 1];
-            combP[irmaoEsq.nroChaves + 1] = noAtual->P[0];
-            
-            // distribui a primeira metade para o irmão da esquerda
-            int numEsq = totalChaves / 2;
-            irmaoEsq.nroChaves = numEsq;
-            for (int i = 0; i < numEsq; i++) {
-                irmaoEsq.Chaves[i] = combC[i];
-                irmaoEsq.Pr[i] = combPr[i];
-                irmaoEsq.P[i] = combP[i];
-            }
-            irmaoEsq.P[numEsq] = combP[numEsq];
-            
-            for(int i = numEsq; i < MAX_NOS; i++) { irmaoEsq.Chaves[i] = -1; irmaoEsq.Pr[i] = -1; }
-            for(int i = numEsq + 1; i < MAX_PONTEIROS; i++) { irmaoEsq.P[i] = -1; }
-            
-            // chave do meio sobe pra virar pai
-            noPai->Chaves[indiceFilho - 1] = combC[numEsq];
-            noPai->Pr[indiceFilho - 1] = combPr[numEsq];
-            
-            // restante fica no atual (que seria da direita)
-            int numDir = totalChaves - numEsq - 1;
-            noAtual->nroChaves = numDir;
-            for (int i = 0; i < numDir; i++) {
-                noAtual->Chaves[i] = combC[numEsq + 1 + i];
-                noAtual->Pr[i] = combPr[numEsq + 1 + i];
-                noAtual->P[i] = combP[numEsq + 1 + i];
-            }
-            noAtual->P[numDir] = combP[totalChaves];
-            
-            for(int i = numDir; i < MAX_NOS; i++) { noAtual->Chaves[i] = -1; noAtual->Pr[i] = -1; }
-            for(int i = numDir + 1; i < MAX_PONTEIROS; i++) { noAtual->P[i] = -1; }
-            
-            gravarNoArvore(arv, noAtual, rrnAtual);
-            gravarNoArvore(arv, &irmaoEsq, rrnIrmaoEsq);
-            gravarNoArvore(arv, noPai, rrnPai);
-            return;
-        }
-    }
+    int rrnIrmaoEsq = args->noPai->P[*(args->indiceFilho) - 1];
+    NoArvore irmaoEsq;
+    lerNoArvore(args->arv, &irmaoEsq, rrnIrmaoEsq);
     
-    // CONCATENAÇÃO ESQUERDA
-    if (indiceFilho > 0) {
-        int rrnIrmaoEsq = noPai->P[indiceFilho - 1];
-        NoArvore irmaoEsq;
-        lerNoArvore(arv, &irmaoEsq, rrnIrmaoEsq);
-        
-        irmaoEsq.Chaves[irmaoEsq.nroChaves] = noPai->Chaves[indiceFilho - 1];
-        irmaoEsq.Pr[irmaoEsq.nroChaves] = noPai->Pr[indiceFilho - 1];
-        irmaoEsq.P[irmaoEsq.nroChaves + 1] = noAtual->P[0];
+    if (irmaoEsq.nroChaves <= 1) return false;
+    
+    // se chegou aqui, é porque tem como fazer a redistribuicao à esquerda
+    int totalChaves = irmaoEsq.nroChaves + 1;
+    int combC[5], combPr[5], combP[6];
+    
+    // pega todas as chaves e ponteiros do irmão da esquerda
+    for (int i=0; i<irmaoEsq.nroChaves; i++) {
+        combC[i] = irmaoEsq.Chaves[i];
+        combPr[i] = irmaoEsq.Pr[i];
+        combP[i] = irmaoEsq.P[i];
+    }
+    combP[irmaoEsq.nroChaves] = irmaoEsq.P[irmaoEsq.nroChaves];
+    
+    // puxa a chave do pai para o final do agrupamento
+    combC[irmaoEsq.nroChaves] = args->noPai->Chaves[*args->indiceFilho - 1];
+    combPr[irmaoEsq.nroChaves] = args->noPai->Pr[*args->indiceFilho - 1];
+    combP[irmaoEsq.nroChaves + 1] = args->noAtual->P[0];
+    
+    // distribui a primeira metade para o irmão da esquerda
+    int numEsq = totalChaves / 2;
+    irmaoEsq.nroChaves = numEsq;
+    for (int i=0; i<numEsq; i++) {
+        irmaoEsq.Chaves[i] = combC[i];
+        irmaoEsq.Pr[i] = combPr[i];
+        irmaoEsq.P[i] = combP[i];
+    }
+    irmaoEsq.P[numEsq] = combP[numEsq];
+    
+    for(int i=numEsq; i<MAX_NOS; i++) { irmaoEsq.Chaves[i] = -1; irmaoEsq.Pr[i] = -1; }
+    for(int i=numEsq + 1; i<MAX_PONTEIROS; i++) { irmaoEsq.P[i] = -1; }
+    
+    // chave do meio sobe pra virar pai
+    args->noPai->Chaves[*args->indiceFilho - 1] = combC[numEsq];
+    args->noPai->Pr[*args->indiceFilho - 1] = combPr[numEsq];
+    
+    // restante fica no atual (que seria da direita)
+    int numDir = totalChaves - numEsq - 1;
+    args->noAtual->nroChaves = numDir;
+    for (int i = 0; i < numDir; i++) {
+        args->noAtual->Chaves[i] = combC[numEsq + 1 + i];
+        args->noAtual->Pr[i] = combPr[numEsq + 1 + i];
+        args->noAtual->P[i] = combP[numEsq + 1 + i];
+    }
+    args->noAtual->P[numDir] = combP[totalChaves];
+    
+    for(int i=numDir; i<MAX_NOS; i++) { args->noAtual->Chaves[i] = -1; args->noAtual->Pr[i] = -1; }
+    for(int i=numDir+1; i<MAX_PONTEIROS; i++) { args->noAtual->P[i] = -1; }
+    
+    gravarNoArvore(args->arv, args->noAtual, *args->rrnAtual);
+    gravarNoArvore(args->arv, &irmaoEsq, rrnIrmaoEsq);
+    gravarNoArvore(args->arv, args->noPai, *args->rrnPai);
+    return true;
+}
+
+static bool concatenacaoEsquerda(ParamRemocao* args) {
+
+    int rrnIrmaoEsq = args->noPai->P[*args->indiceFilho-1];
+    NoArvore irmaoEsq;
+    lerNoArvore(args->arv, &irmaoEsq, rrnIrmaoEsq);
+    
+    irmaoEsq.Chaves[irmaoEsq.nroChaves] = args->noPai->Chaves[*args->indiceFilho-1];
+    irmaoEsq.Pr[irmaoEsq.nroChaves] = args->noPai->Pr[*args->indiceFilho-1];
+    irmaoEsq.P[irmaoEsq.nroChaves+1] = args->noAtual->P[0];
+    irmaoEsq.nroChaves++;
+    
+    for (int i=0; i<args->noAtual->nroChaves; i++) {
+        irmaoEsq.Chaves[irmaoEsq.nroChaves] = args->noAtual->Chaves[i];
+        irmaoEsq.Pr[irmaoEsq.nroChaves] = args->noAtual->Pr[i];
+        irmaoEsq.P[irmaoEsq.nroChaves+1] = args->noAtual->P[i+1];
         irmaoEsq.nroChaves++;
-        
-        for (int i = 0; i < noAtual->nroChaves; i++) {
-            irmaoEsq.Chaves[irmaoEsq.nroChaves] = noAtual->Chaves[i];
-            irmaoEsq.Pr[irmaoEsq.nroChaves] = noAtual->Pr[i];
-            irmaoEsq.P[irmaoEsq.nroChaves + 1] = noAtual->P[i + 1];
-            irmaoEsq.nroChaves++;
-        }
-        
-        for (int i = indiceFilho - 1; i < noPai->nroChaves - 1; i++) {
-            noPai->Chaves[i] = noPai->Chaves[i + 1];
-            noPai->Pr[i] = noPai->Pr[i + 1];
-            noPai->P[i + 1] = noPai->P[i + 2];
-        }
-        noPai->Chaves[noPai->nroChaves - 1] = -1;
-        noPai->Pr[noPai->nroChaves - 1] = -1;
-        noPai->P[noPai->nroChaves] = -1;
-        noPai->nroChaves--;
-        
-        gravarNoArvore(arv, &irmaoEsq, rrnIrmaoEsq);
-        empilharNoRemovido(arv, cab, rrnAtual, noAtual); 
-        gravarNoArvore(arv, noPai, rrnPai);
-        return;
     }
     
-    // CONCATENAÇÃO DIREITA
-    if (indiceFilho < noPai->nroChaves) {
-        int rrnIrmaoDir = noPai->P[indiceFilho + 1];
-        NoArvore irmaoDir;
-        lerNoArvore(arv, &irmaoDir, rrnIrmaoDir);
-        
-        noAtual->Chaves[noAtual->nroChaves] = noPai->Chaves[indiceFilho];
-        noAtual->Pr[noAtual->nroChaves] = noPai->Pr[indiceFilho];
-        noAtual->P[noAtual->nroChaves + 1] = irmaoDir.P[0];
-        noAtual->nroChaves++;
-        
-        for (int i = 0; i < irmaoDir.nroChaves; i++) {
-            noAtual->Chaves[noAtual->nroChaves] = irmaoDir.Chaves[i];
-            noAtual->Pr[noAtual->nroChaves] = irmaoDir.Pr[i];
-            noAtual->P[noAtual->nroChaves + 1] = irmaoDir.P[i + 1];
-            noAtual->nroChaves++;
-        }
-        
-        for (int i = indiceFilho; i < noPai->nroChaves - 1; i++) {
-            noPai->Chaves[i] = noPai->Chaves[i + 1];
-            noPai->Pr[i] = noPai->Pr[i + 1];
-            noPai->P[i + 1] = noPai->P[i + 2];
-        }
-        noPai->Chaves[noPai->nroChaves - 1] = -1;
-        noPai->Pr[noPai->nroChaves - 1] = -1;
-        noPai->P[noPai->nroChaves] = -1;
-        noPai->nroChaves--;
-        
-        gravarNoArvore(arv, noAtual, rrnAtual);
-        empilharNoRemovido(arv, cab, rrnIrmaoDir, &irmaoDir); 
-        gravarNoArvore(arv, noPai, rrnPai);
-        return;
+    for (int i=*args->indiceFilho-1; i<args->noPai->nroChaves - 1; i++) {
+        args->noPai->Chaves[i] = args->noPai->Chaves[i+1];
+        args->noPai->Pr[i] = args->noPai->Pr[i+1];
+        args->noPai->P[i+1] = args->noPai->P[i+2];
+    }
+
+    args->noPai->Chaves[args->noPai->nroChaves - 1] = -1;
+    args->noPai->Pr[args->noPai->nroChaves - 1] = -1;
+    args->noPai->P[args->noPai->nroChaves] = -1;
+    args->noPai->nroChaves--;
+    
+    gravarNoArvore(args->arv, &irmaoEsq, rrnIrmaoEsq);
+    empilharNoRemovido(args->arv, args->cab, *args->rrnAtual, args->noAtual); 
+    gravarNoArvore(args->arv, args->noPai, *args->rrnPai);
+    return true;
+}
+
+static bool concatenacaoDireita(ParamRemocao* args) {
+    int rrnIrmaoDir = args->noPai->P[*args->indiceFilho + 1];
+    NoArvore irmaoDir;
+    lerNoArvore(args->arv, &irmaoDir, rrnIrmaoDir);
+    
+    args->noAtual->Chaves[args->noAtual->nroChaves] = args->noPai->Chaves[*args->indiceFilho];
+    args->noAtual->Pr[args->noAtual->nroChaves] = args->noPai->Pr[*args->indiceFilho];
+    args->noAtual->P[args->noAtual->nroChaves + 1] = irmaoDir.P[0];
+    args->noAtual->nroChaves++;
+    
+    for (int i = 0; i < irmaoDir.nroChaves; i++) {
+        args->noAtual->Chaves[args->noAtual->nroChaves] = irmaoDir.Chaves[i];
+        args->noAtual->Pr[args->noAtual->nroChaves] = irmaoDir.Pr[i];
+        args->noAtual->P[args->noAtual->nroChaves + 1] = irmaoDir.P[i + 1];
+        args->noAtual->nroChaves++;
+    }
+    
+    for (int i = *args->indiceFilho; i < args->noPai->nroChaves - 1; i++) {
+        args->noPai->Chaves[i] = args->noPai->Chaves[i + 1];
+        args->noPai->Pr[i] = args->noPai->Pr[i + 1];
+        args->noPai->P[i + 1] = args->noPai->P[i + 2];
+    }
+    args->noPai->Chaves[args->noPai->nroChaves - 1] = -1;
+    args->noPai->Pr[args->noPai->nroChaves - 1] = -1;
+    args->noPai->P[args->noPai->nroChaves] = -1;
+    args->noPai->nroChaves--;
+    
+    gravarNoArvore(args->arv, args->noAtual, *args->rrnAtual);
+    empilharNoRemovido(args->arv, args->cab, rrnIrmaoDir, &irmaoDir); 
+    gravarNoArvore(args->arv, args->noPai, *args->rrnPai);
+    return true;
+}
+
+/// @brief ROTINA DOS 4 CASOS PARA TRATAR UNDERFLOW
+static void tratarUnderflow(ParamRemocao* args) {
+    
+    // 1) - TENTA REDISTRIBUIÇÃO A DIREITA
+    if (*(args->indiceFilho) < args->noPai->nroChaves) {
+        if (redistribuicaoDireita(args)) return;
+    }
+    
+    // 2) - TENTA REDISTRIBUIÇÃO A ESQUERDA 
+    if (*args->indiceFilho > 0) {
+        if (redistribuicaoEsquerda(args)) return;
+    }
+    
+    // 3) - TENTA CONCATENAÇÃO ESQUERDA
+    if (*args->indiceFilho > 0) {
+        if (concatenacaoEsquerda(args)) return;
+    }
+    
+    // 4) - TENTA CONCATENAÇÃO DIREITA
+    if (*args->indiceFilho < args->noPai->nroChaves) {
+        if (concatenacaoDireita(args)) return;
     }
 }
 
+static bool remocaoDiretaSimples(FILE* arv, NoArvore* no, int i, int rrnAtual) {
+
+    for (int j=i; j<no->nroChaves-1; j++) {
+        no->Chaves[j] = no->Chaves[j+1];
+        no->Pr[j] = no->Pr[j+1];
+    }
+    no->Chaves[no->nroChaves-1] = -1;
+    no->Pr[no->nroChaves-1] = -1;
+    no->nroChaves--;
+    gravarNoArvore(arv, no, rrnAtual);
+    return true;
+}
+
+bool ArvoreRemoverRecursiva(FILE* arv, CabecalhoArvore* cab, int rrnAtual, int chave); // manter ordem de principalidade
+
+static bool substituiSucessorImediato(FILE* arv, CabecalhoArvore* cab, NoArvore* no, int i, int rrnAtual) {
+    // Percorre o caminho pra achar o sucessor
+    NoArvore noSucessor;
+    int rrnSucessor = no->P[i+1];
+    while (rrnSucessor != -1) {
+        lerNoArvore(arv, &noSucessor, rrnSucessor);
+        if (noSucessor.P[0] == -1) break; // achou a folha
+        rrnSucessor = noSucessor.P[0];
+    }
+    int chaveSucessora = noSucessor.Chaves[0];
+    int prSucessor = noSucessor.Pr[0];
+    
+    // Substitui a chave no nó atual e SALVA NO DISCO
+    no->Chaves[i] = chaveSucessora;
+    no->Pr[i] = prSucessor;
+    gravarNoArvore(arv, no, rrnAtual); 
+    
+    // Remove o sucessor fisicamente lá na folha da subárvore direita
+    int rrnFilhoDir = no->P[i + 1];
+    bool removeu = ArvoreRemoverRecursiva(arv, cab, rrnFilhoDir, chaveSucessora);
+    
+    // Checa underflow no filho direito após deletar o sucessor
+    if (!removeu) return true;
+
+    NoArvore noFilhoDir;
+    lerNoArvore(arv, &noFilhoDir, rrnFilhoDir);
+    if (!noFilhoDir.nroChaves) {
+        
+        ParamRemocao args;
+        args.arv = arv; args.cab = cab;
+        args.noAtual = &noFilhoDir; args.rrnAtual = &rrnFilhoDir;
+        args.noPai = no; args.rrnPai = &rrnAtual;
+        int posFilho = i + 1;
+        args.indiceFilho = &posFilho; 
+        
+        tratarUnderflow(&args); 
+    }
+    return true;
+}
+
 /// @brief função recursiva interna de remoção
-/// @brief trata os principais casos
+/// @details Recebe os parâmetros por valor para isolar o escopo de cada nível da recursão!
 bool ArvoreRemoverRecursiva(FILE* arv, CabecalhoArvore* cab, int rrnAtual, int chave) {
+    
     if (rrnAtual == -1) return false;
 
     NoArvore no;
     lerNoArvore(arv, &no, rrnAtual);
     
     int i = 0;
-    while (i < no.nroChaves && no.Chaves[i] < chave) i++;
+    while (i<no.nroChaves && no.Chaves[i] < chave) i++;
     
-    // 1) - Encontrou nesse nó yay
-    if (i < no.nroChaves && no.Chaves[i] == chave) {
-
-        // É nó folha? => remoção direta simples
-        if (no.tipoNo == -1) { 
-            for (int j = i; j < no.nroChaves - 1; j++) {
-                no.Chaves[j] = no.Chaves[j + 1];
-                no.Pr[j] = no.Pr[j + 1];
-            }
-            no.Chaves[no.nroChaves - 1] = -1;
-            no.Pr[no.nroChaves - 1] = -1;
-            no.nroChaves--;
-            gravarNoArvore(arv, &no, rrnAtual);
-            return true;
-        } 
-        // É nó interno: substitui pelo sucessor imediato (um pra direita e tudo pra esquerda)
-        else { 
-            
-            // percorre o caminho pra achar o sucessor (SIMILAR COM AVL)
-            NoArvore noSucessor;
-            int rrnSucessor = no.P[i + 1];
-            while (rrnSucessor != -1) {
-                lerNoArvore(arv, &noSucessor, rrnSucessor);
-                if (noSucessor.P[0] == -1) break; // achou a folha
-                rrnSucessor = noSucessor.P[0];
-            }
-            int chaveSucessora = noSucessor.Chaves[0];
-            int prSucessor = noSucessor.Pr[0];
-            
-            // substitui a chave no nó atual e SALVA NO DISCO
-            no.Chaves[i] = chaveSucessora;
-            no.Pr[i] = prSucessor;
-            gravarNoArvore(arv, &no, rrnAtual); 
-            
-            // remove o sucessor da subárvore direita (similar com AVL?)
-            int rrnFilhoDir = no.P[i + 1];
-            bool removeu = ArvoreRemoverRecursiva(arv, cab, rrnFilhoDir, chaveSucessora);
-            
-            // checa underflow no filho direito  (AAAAAAAA TEM QUE CHECKAR UNDERFLOW EM TUDO NESSA CARAL)
-            if (removeu) {
-                NoArvore noFilhoDir;
-                lerNoArvore(arv, &noFilhoDir, rrnFilhoDir);
-                if (noFilhoDir.nroChaves == 0) {
-                    //  i+1 => recursão desceu pelo ponteiro da direita
-                    tratarUnderflow(arv, cab, rrnFilhoDir, &noFilhoDir, rrnAtual, &no, i + 1); 
-                }
-            }
-            return true;
-        }
-    }
+    // 1) - Encontrou a chave neste nó
+    // É nó folha? => remoção direta simples, se não (se for nó interno, subsituti pelo sucessor imeddiato)
+    if (i<no.nroChaves && no.Chaves[i] == chave)
+        return (no.tipoNo == -1 ? remocaoDiretaSimples(arv, &no, i, rrnAtual) : substituiSucessorImediato(arv, cab, &no, i, rrnAtual));
     
-    // 2) se não encontrou => continua descendo (recursivamente)
+    // 2) Se não encontrou => continua descendo recursivamente
     int rrnFilho = no.P[i];
     bool removeu = ArvoreRemoverRecursiva(arv, cab, rrnFilho, chave);
     
+    // Checa se o filho que acabou de voltar da recursão ficou com underflow
     if (removeu) {
         NoArvore noFilho;
         lerNoArvore(arv, &noFilho, rrnFilho);
         
-        // checa se filho ficou com underflow
-        if (noFilho.nroChaves == 0) {
-            tratarUnderflow(arv, cab, rrnFilho, &noFilho, rrnAtual, &no, i);
-        }
+        if (noFilho.nroChaves != 0) return removeu;
+
+        // monta a struct de parâmetros exclusivamente para o Underflow!
+        ParamRemocao args;
+        args.arv = arv; args.cab = cab;
+        args.noAtual = &noFilho; args.rrnAtual = &rrnFilho;
+        args.noPai = &no; args.rrnPai = &rrnAtual;
+        args.indiceFilho = &i;
+        
+        tratarUnderflow(&args);
     }
     
     return removeu;
 }
 
+static void trocaRaiz(FILE* arv, CabecalhoArvore* cab, NoArvore* raiz) {
+    int antigaRaizRRN = cab->noRaiz;
+
+    if (raiz->tipoNo != -1) { 
+        // Se a antiga raiz era nó interno, o filho esquerdo vira a nova raiz
+        cab->noRaiz = raiz->P[0];
+        NoArvore novaRaiz;
+        lerNoArvore(arv, &novaRaiz, cab->noRaiz);
+        if (novaRaiz.tipoNo != -1) novaRaiz.tipoNo = 0; // status de raiz (0)
+        gravarNoArvore(arv, &novaRaiz, cab->noRaiz);
+    } else { 
+        // Se era uma folha, então árvore ficou completamente vazia
+        cab->noRaiz = -1;
+    }
+    
+    // Finalmente, faz kaboom com a raíz antiga
+    empilharNoRemovido(arv, cab, antigaRaizRRN, raiz);
+}
+
 /// @brief interface pública 
 void ArvoreRemover(FILE* arv, CabecalhoArvore* cab, int chave) {
+
     if (arv == NULL || cab == NULL || cab->noRaiz == -1) return;
     
+    // Inicia a recursão com os valores primários
     ArvoreRemoverRecursiva(arv, cab, cab->noRaiz, chave);
     
-    // trata queda de raíz
+    // Trata queda de raíz
     if (cab->noRaiz != -1) {
         NoArvore raiz;
         lerNoArvore(arv, &raiz, cab->noRaiz);
         
-        // se raiz ficou vazia...
-        if (raiz.nroChaves == 0) {
-            int antigaRaizRRN = cab->noRaiz;
-            
-            if (raiz.tipoNo != -1) { 
-                // se a antiga raiz era nó interno, o filho esquerdo vira a nova raiz
-                cab->noRaiz = raiz.P[0];
-                NoArvore novaRaiz;
-                lerNoArvore(arv, &novaRaiz, cab->noRaiz);
-                if (novaRaiz.tipoNo != -1) novaRaiz.tipoNo = 0; //  status de raiz (0)
-                gravarNoArvore(arv, &novaRaiz, cab->noRaiz);
-            } else { 
-                // se era uma folha, então árvore ficou vazia
-                cab->noRaiz = -1;
-            }
-            
-            // finalmente, faz kaboom com a raíz antiga
-            empilharNoRemovido(arv, cab, antigaRaizRRN, &raiz);
-        }
+        // Se raiz ficou vazia, troca raiz
+        if (raiz.nroChaves == 0) trocaRaiz(arv, cab, &raiz);
     }
 }
