@@ -25,7 +25,19 @@ static void contador(paramFuncContador* args, int* contavel) {
     bool repetido = false;
 
     for (int j=0; j<(args->i); j++) {
-
+        /*
+        * VERIFICAÇÃO DE DUPLICIDADE 
+        * 
+        * checa se o registro atual (i) é duplicata do registro de ntes (j)
+        * ESTACOES:
+        *  nome da estação no j não pode ser nulo
+        *  compara (strcmp) o nome da estação i com o nome da estação 'j. Se forem iguais é repetido.
+        *
+        * PARES:
+        *  checa se codEstacao i é igual ao de j
+        *  checa se o codProxEstacao i também é igual ao de j
+        *   se os dois forem verdade, o par é repetido.
+        */
         bool condicaoRepetido = (args->tipo == ESTACOES ?
         (args->ativos)[j].nomeEstacao != NULL && strcmp((args->ativos)[args->i].nomeEstacao, args->ativos[j].nomeEstacao) == 0 :
         (args->ativos)[args->i].codEstacao == (args->ativos)[j].codEstacao && (args->ativos)[args->i].codProxEstacao == (args->ativos)[j].codProxEstacao
@@ -37,26 +49,21 @@ static void contador(paramFuncContador* args, int* contavel) {
     if (!repetido) (*contavel)++;
 }
 
-
-/// @related auxiliar de recalculiarContadores
-/// @return (atualizado) nroEstacoes & nroParesEstacoes 
-static Par recontagem(paramFuncContador* args, Par* contadores) {
+/// @related auxiliar de recalcularContadores
+static void recontagem(paramFuncContador* args, Par* contadores) {
 
     // estacoes únicas
     if ((args->ativos)[args->i].nomeEstacao != NULL && strlen((args->ativos)[args->i].nomeEstacao) > 0) {
-        contador(args, contadores->origem);
+        args->tipo = ESTACOES;
+        contador(args, &(contadores->origem));
     }
     
     // pares únicos
     if ((args->ativos)[args->i].codEstacao != -1 && (args->ativos)[args->i].codProxEstacao != -1) {
-        contador(args, contadores->destino);
+        args->tipo = PARES;
+        contador(args, &(contadores->destino));
     }
-
-    Par contadores_atualizados;
-    contadores_atualizados.origem = contadores->origem; contadores_atualizados.destino = contadores->destino;
-    return contadores_atualizados;
 }
-
 
 /// @details após todas as remoções lógicas, precisamos recontar as estações únicas e pares únicos
 /// @param fileDados 
@@ -88,7 +95,7 @@ static void recalcularContadores(FILE* fileDados) {
 
     for (int i=0; i<numAtivos; i++) { // loop em que ocorre a recontagem
         args.i = i;
-        contadores = recontagem(&args, &contadores);
+        recontagem(&args, &contadores);
     }
 
     // gravação cabeçalho: nroEstacoes (offset 9) nroParesEstacoes (offset13)
@@ -97,7 +104,7 @@ static void recalcularContadores(FILE* fileDados) {
     fwrite(&contadores.destino, sizeof(int), 1, fileDados); // destino = nroParesEstacoes
     
     // desalocação de memória antes de terminar a função
-    for (int i = 0; i < numAtivos; i++) {
+    for (int i=0; i<numAtivos; i++) {
         if (ativos[i].nomeEstacao) free(ativos[i].nomeEstacao);
         if (ativos[i].nomeLinha) free(ativos[i].nomeLinha);
     }
@@ -219,7 +226,7 @@ void delete_btree(const char* nomeArquivoDados, const char* nomeArquivoIndice, i
     CabecalhoArvore cabIndice;
     lerCabecalhoArvore(fileIndice, &cabIndice);
 
-    for (int i = 0; i < n; i++) {
+    for (int i=0; i<n; i++) {
         OQueBuscar query;
         memset(&query, 0, sizeof(OQueBuscar));
         
@@ -227,7 +234,7 @@ void delete_btree(const char* nomeArquivoDados, const char* nomeArquivoIndice, i
         scanf("%d", &m); 
         
         /// @attention GAMBIARRA AFRENTE!!!!!!!!! TEMPORÁRIO PARA CONTORNAR BUG DO ScanQuoteString
-        for (int j = 0; j < m; j++) {
+        for (int j=0; j<m; j++) {
             char nomeCampo[50];
             scanf("%s", nomeCampo);
 
