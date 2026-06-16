@@ -133,7 +133,7 @@ static bool registroPassaFiltro(Registro* reg, OQueBuscar* query) {
     return true;
 }
 
-// ---------------- FUNÇÕES RELACIONADAS Á BUSCA PARA PODER DELETAR -----------------------
+// ---------------- FUNÇÕES RELACIONADAS Á ORGANIZAÇÃO BUSCA PARA PODER DELETAR -----------------------
 
 // struct com parâmetros usados nessas funções
 typedef struct {
