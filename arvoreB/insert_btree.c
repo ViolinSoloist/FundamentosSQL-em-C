@@ -47,15 +47,9 @@ static void logicaInsercaoBTree(FILE* fileDados, FILE* fileIndice, CabecalhoArvo
     fwrite(&proxRRN, sizeof(int), 1, fileDados);
 
     // ---------- ARVORE B ----------------------
-<<<<<<< HEAD
-    // * após inserir fisicamente => pegar chave (codEstacao) e o local onde está salvo (rrn_inserido) e "avisa" o índice.
-    
-    ArvoreInserir(fileIndice, cabIndice, temp.codEstacao, byteOffset); /// @attention A IMPLEMENTAR AINDA
-=======
     // gravação no índice .btree
     ArvoreInserir(fileIndice, cabIndice, temp.codEstacao, (int)byteOffset);
 
->>>>>>> f17bd03697ac5049aee14ede6dd7587f0220f76c
 
     if (temp.nomeEstacao) free(temp.nomeEstacao);
     if (temp.nomeLinha) free(temp.nomeLinha);

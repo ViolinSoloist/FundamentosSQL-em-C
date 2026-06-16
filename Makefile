@@ -15,13 +15,13 @@ FUNCIONALIDADES = \
     $(LOCAL1)/select_where.c \
     $(LOCAL1)/insert.c \
     $(LOCAL1)/update.c \
-    $(LOCAL1)/create_index.c \
     $(LOCAL2)/busca.c \
     $(LOCAL2)/cabecalho.c \
     $(LOCAL2)/serial.c \
     $(LOCAL2)/manipul_arq.c \
     $(LOCAL2)/terminal.c \
     $(LOCAL3)/arvoreB.c \
+    $(LOCAL3)/create_index.c \
     $(LOCAL3)/insert_btree.c \
     $(LOCAL3)/select_where_btree.c \
 	$(LOCAL3)/delete_btree.c
