@@ -802,7 +802,7 @@ bool ArvoreRemoverRecursiva(FILE* arv, CabecalhoArvore* cab, int rrnAtual, int c
         
         if (noFilho.nroChaves != 0) return removeu;
 
-        // monta a struct de parâmetros exclusivamente para o Underflow!
+        // monta a struct de parâmetros só para o tratamento de underflow
         ParamRemocao args;
         args.arv = arv; args.cab = cab;
         args.noAtual = &noFilho; args.rrnAtual = &rrnFilho;
