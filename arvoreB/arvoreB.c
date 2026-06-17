@@ -721,7 +721,7 @@ static void tratarUnderflow(ParamRemocao* args) {
 
 static bool remocaoDiretaSimples(FILE* arv, NoArvore* no, int i, int rrnAtual) {
 
-    for (int j=i; j<no->nroChaves-1; j++) {
+    for (int j=i; j < no->nroChaves-1; j++) {
         no->Chaves[j] = no->Chaves[j+1];
         no->Pr[j] = no->Pr[j+1];
     }
