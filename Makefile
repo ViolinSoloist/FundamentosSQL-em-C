@@ -41,3 +41,8 @@ clean:
 zip:
 	zip -r entrega.zip * -x "IO/*" "README.md" "saidas"
 
+subs:
+	cp arq_entrada/* ./
+
+memcheck:
+	valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./programaTrab
