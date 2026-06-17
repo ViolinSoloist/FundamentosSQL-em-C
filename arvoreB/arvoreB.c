@@ -627,17 +627,22 @@ static bool redistribuicaoEsquerda(ParamRemocao* args) {
     return true;
 }
 
+/// @brief Realiza a fusão (concatenação) do nó atual com o seu irmão da esquerda.
+/// @details A chave divisória do pai desce para o irmão da esquerda, e o nó atual é totalmente absorvido por ele. O nó atual é destruído(empilhado).
 static bool concatenacaoEsquerda(ParamRemocao* args) {
 
+    // lê o irmão da esquerda do disco para a memória
     int rrnIrmaoEsq = args->noPai->P[*args->indiceFilho-1];
     NoArvore irmaoEsq;
     lerNoArvore(args->arv, &irmaoEsq, rrnIrmaoEsq);
     
+    // chave divisória do pai desce para o final do nó da esquerda
     irmaoEsq.Chaves[irmaoEsq.nroChaves] = args->noPai->Chaves[*args->indiceFilho-1];
     irmaoEsq.Pr[irmaoEsq.nroChaves] = args->noPai->Pr[*args->indiceFilho-1];
-    irmaoEsq.P[irmaoEsq.nroChaves+1] = args->noAtual->P[0];
+    irmaoEsq.P[irmaoEsq.nroChaves+1] = args->noAtual->P[0]; // Junta o primeiro ponteiro do nó atual
     irmaoEsq.nroChaves++;
     
+    // copia todas as chaves e ponteiros do nó atual para a continuação do irmão da esquerda
     for (int i=0; i<args->noAtual->nroChaves; i++) {
         irmaoEsq.Chaves[irmaoEsq.nroChaves] = args->noAtual->Chaves[i];
         irmaoEsq.Pr[irmaoEsq.nroChaves] = args->noAtual->Pr[i];
@@ -645,33 +650,44 @@ static bool concatenacaoEsquerda(ParamRemocao* args) {
         irmaoEsq.nroChaves++;
     }
     
+    // ajusta o nó pai (ja que uma de suas chaves desceu)
+    // shifta os elementos restantes do pai 1 pra esquerda
     for (int i=*args->indiceFilho-1; i<args->noPai->nroChaves - 1; i++) {
         args->noPai->Chaves[i] = args->noPai->Chaves[i+1];
         args->noPai->Pr[i] = args->noPai->Pr[i+1];
         args->noPai->P[i+1] = args->noPai->P[i+2];
     }
 
+    // limpa última posição do pai que ficou duplicada após o shift
     args->noPai->Chaves[args->noPai->nroChaves - 1] = -1;
     args->noPai->Pr[args->noPai->nroChaves - 1] = -1;
     args->noPai->P[args->noPai->nroChaves] = -1;
-    args->noPai->nroChaves--;
+    args->noPai->nroChaves--; // O pai perdeu uma chave devido à fusão
     
+    // atualiza as estruturas no arquivo e destrói o nó atual
     gravarNoArvore(args->arv, &irmaoEsq, rrnIrmaoEsq);
     empilharNoRemovido(args->arv, args->cab, *args->rrnAtual, args->noAtual); 
     gravarNoArvore(args->arv, args->noPai, *args->rrnPai);
-    return true;
+    
+    return true; // deu certo
 }
 
+/// @brief Realiza a fusão (concatenação) do nó atual com o seu irmão da direita.
+/// @details A chave divisória do pai desce para o nó atual, e o irmão da direita é totalmente absorvido por ele. O irmão da direita é destruído(empilhado).
 static bool concatenacaoDireita(ParamRemocao* args) {
+    
+    // lê o irmão da direita do disco para a memória
     int rrnIrmaoDir = args->noPai->P[*args->indiceFilho + 1];
     NoArvore irmaoDir;
     lerNoArvore(args->arv, &irmaoDir, rrnIrmaoDir);
     
+    // chave divisória do pai desce para o final do nó atual (que está sofrendo underflow)
     args->noAtual->Chaves[args->noAtual->nroChaves] = args->noPai->Chaves[*args->indiceFilho];
     args->noAtual->Pr[args->noAtual->nroChaves] = args->noPai->Pr[*args->indiceFilho];
-    args->noAtual->P[args->noAtual->nroChaves + 1] = irmaoDir.P[0];
+    args->noAtual->P[args->noAtual->nroChaves + 1] = irmaoDir.P[0]; // puxa o primeiro ponteiro do irmão da direita
     args->noAtual->nroChaves++;
     
+    // copia todos os dados do nó da direita para a continuação do nó atual
     for (int i = 0; i < irmaoDir.nroChaves; i++) {
         args->noAtual->Chaves[args->noAtual->nroChaves] = irmaoDir.Chaves[i];
         args->noAtual->Pr[args->noAtual->nroChaves] = irmaoDir.Pr[i];
@@ -679,20 +695,25 @@ static bool concatenacaoDireita(ParamRemocao* args) {
         args->noAtual->nroChaves++;
     }
     
+    // shifta elementos pra esquerda
     for (int i = *args->indiceFilho; i < args->noPai->nroChaves - 1; i++) {
         args->noPai->Chaves[i] = args->noPai->Chaves[i + 1];
         args->noPai->Pr[i] = args->noPai->Pr[i + 1];
         args->noPai->P[i + 1] = args->noPai->P[i + 2];
     }
+    
+    // limpa última posição que restou no pai && atualiza o contador
     args->noPai->Chaves[args->noPai->nroChaves - 1] = -1;
     args->noPai->Pr[args->noPai->nroChaves - 1] = -1;
     args->noPai->P[args->noPai->nroChaves] = -1;
-    args->noPai->nroChaves--;
+    args->noPai->nroChaves--; // O pai perdeu uma chave devido à fusão
     
+    // grava as mudanças no disco e destrói o nó da direita (integrado ao atual)
     gravarNoArvore(args->arv, args->noAtual, *args->rrnAtual);
     empilharNoRemovido(args->arv, args->cab, rrnIrmaoDir, &irmaoDir); 
     gravarNoArvore(args->arv, args->noPai, *args->rrnPai);
-    return true;
+    
+    return true; // deu certo (pra callbacl)
 }
 
 /// @brief ROTINA DOS 4 CASOS PARA TRATAR UNDERFLOW
