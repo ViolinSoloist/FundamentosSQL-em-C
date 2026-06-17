@@ -567,7 +567,7 @@ static bool redistribuicaoDireita(ParamRemocao* args) {
 
 static bool redistribuicaoEsquerda(ParamRemocao* args) {
 
-    // BASICAMENTE A MESMA COISA DE ANTES MAS EM VEZ DE PEGAR DA DIREITA E JOGAR NO ATUAL, PEGA DO ATUAL E JOGA NA ESQUERDA, SEGUE A MESMA LÓGICA
+    // BASICAMENTE A MESMA COISA DE ANTES MAS EM VEZ DE PEGAR DA DIREITA E JOGAR NO ATUAL, PEGA DA ESQUERDA E FAZ OS BAGUI, SEGUE A MESMA LÓGICA
     int rrnIrmaoEsq = args->noPai->P[*(args->indiceFilho) - 1];
     NoArvore irmaoEsq;
     lerNoArvore(args->arv, &irmaoEsq, rrnIrmaoEsq);
