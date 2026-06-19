@@ -102,7 +102,7 @@ int main() {
             break;
             
         case 12:
-            scanf("%s %s %s %s", arquivoEntrada, campo1, arquivoSaida, campo2);
+            scanf("%s %s %s %s %s", arquivoEntrada, campo1, arquivoSaida, campo2, arquivoIndice);
             select_where_juncao_btree(arquivoEntrada, campo1, arquivoSaida, campo2, arquivoIndice);
             break;
 
