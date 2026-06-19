@@ -18,6 +18,8 @@
 #include "delete_btree.h"
 #include "../juncao/select_where_juncao.h"
 #include "../juncao/select_where_juncao_btree.h"
+#include "../juncao/order_by.h"
+#include "../juncao/select_where_juncao_merge.h"
 
 int main() { 
 
@@ -104,6 +106,16 @@ int main() {
         case 12:
             scanf("%s %s %s %s %s", arquivoEntrada, campo1, arquivoSaida, campo2, arquivoIndice);
             select_where_juncao_btree(arquivoEntrada, campo1, arquivoSaida, campo2, arquivoIndice);
+            break;
+
+        case 13:
+            scanf("%s %s %s", arquivoEntrada, campo1, arquivoSaida);
+            order_by(arquivoEntrada, campo1, arquivoSaida, true);
+            break;
+
+        case 14:
+            scanf("%s %s %s %s", arquivoEntrada, campo1, arquivoSaida, campo2);
+            select_where_juncao_merge(arquivoEntrada, campo1, arquivoSaida, campo2);
             break;
 
         default:

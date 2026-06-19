@@ -27,7 +27,9 @@ FUNCIONALIDADES = \
     $(LOCAL3)/select_where_btree.c \
 	$(LOCAL3)/delete_btree.c \
     $(LOCAL4)/select_where_juncao.c \
-    $(LOCAL4)/select_where_juncao_btree.c
+    $(LOCAL4)/select_where_juncao_btree.c \
+    $(LOCAL4)/order_by.c \
+    $(LOCAL4)/select_where_juncao_merge.c 
 
 FLAGS = -Wall -Wextra -std=c99 -g
 INCLUDES = -I. -I$(LOCAL1) -Ifuncoes_fornecidas -I$(LOCAL2) -I$(LOCAL3) -I$(LOCAL4)

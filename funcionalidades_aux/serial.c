@@ -167,3 +167,10 @@ void salvaDadosNoRegistro(Registro* temporario, char* linha_entrada)
     pedaco = strsep(&total, ",");
     temporario->codEstIntegra = (pedaco && *pedaco) ? atoi(pedaco) : -1;
 }
+
+void lerProximoRegistro(Registro* temp, FILE* bin){
+    char removido1;
+    fread(&removido1, sizeof(char), 1, bin);
+
+    binToStruct(temp, bin);
+}

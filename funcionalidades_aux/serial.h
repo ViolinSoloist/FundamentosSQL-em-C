@@ -26,4 +26,6 @@ void binToStruct(Registro* regAtual, FILE* bin);
 // forma mais organizada, ao custo de uso de memória pequeno constante (O(1)) independente da quantidade de registros
 void salvaDadosNoRegistro(Registro* temporario, char* linha_entrada);
 
+void lerProximoRegistro(Registro* temp, FILE* bin);
+
 #endif
