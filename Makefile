@@ -7,6 +7,7 @@ FORNECIDAS = funcoes_fornecidas/fornecidas.c
 LOCAL1 = funcionalidades
 LOCAL2 = funcionalidades_aux
 LOCAL3 = arvoreB
+LOCAL4 = juncao
 
 FUNCIONALIDADES = \
     $(LOCAL1)/create_table.c \
@@ -24,10 +25,12 @@ FUNCIONALIDADES = \
     $(LOCAL3)/create_index.c \
     $(LOCAL3)/insert_btree.c \
     $(LOCAL3)/select_where_btree.c \
-	$(LOCAL3)/delete_btree.c
+	$(LOCAL3)/delete_btree.c \
+    $(LOCAL4)/select_where_juncao.c \
+    $(LOCAL4)/select_where_juncao_btree.c
 
 FLAGS = -Wall -Wextra -std=c99 -g
-INCLUDES = -I. -I$(LOCAL1) -Ifuncoes_fornecidas -I$(LOCAL2) -I$(LOCAL3)
+INCLUDES = -I. -I$(LOCAL1) -Ifuncoes_fornecidas -I$(LOCAL2) -I$(LOCAL3) -I$(LOCAL4)
 
 all:
 	gcc $(MAIN) $(FORNECIDAS) $(FUNCIONALIDADES) -o programaTrab $(FLAGS) $(INCLUDES)

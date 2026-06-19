@@ -16,6 +16,8 @@
 #include "select_where_btree.h"
 #include "insert_btree.h"
 #include "delete_btree.h"
+#include "../juncao/select_where_juncao.h"
+#include "../juncao/select_where_juncao_btree.h"
 
 int main() { 
 
@@ -25,6 +27,9 @@ int main() {
     char arquivoEntrada[50];
     char arquivoSaida[50];
     char arquivoIndice[50];
+
+    char campo1[15];
+    char campo2[15];
 
     // leitura da operação
     if (scanf("%d ", &funcionalidade) != 1) {
@@ -89,6 +94,16 @@ int main() {
         case 10:
             scanf("%s %s %d", arquivoEntrada, arquivoSaida, &n);
             delete_btree(arquivoEntrada, arquivoSaida, n);
+            break;
+
+        case 11:
+            scanf("%s %s %s %s", arquivoEntrada, campo1, arquivoSaida, campo2);
+            select_where_juncao(arquivoEntrada, campo1, arquivoSaida, campo2);
+            break;
+            
+        case 12:
+            scanf("%s %s %s %s", arquivoEntrada, campo1, arquivoSaida, campo2);
+            select_where_juncao_btree(arquivoEntrada, campo1, arquivoSaida, campo2, arquivoIndice);
             break;
 
         default:

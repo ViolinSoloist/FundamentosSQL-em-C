@@ -74,6 +74,29 @@ static void comparaECallback(FILE* bin, char removido, ArgumentosCallback* args)
     args->offset_atual += TAM_REGISTRO;
 }
 
+// Retorna o valor inteiro do campo
+int obterValorInt(Registro* reg, const char* nomeCampo) {
+    if (!strcmp(nomeCampo, "codEstacao"))        return reg->codEstacao;
+    if (!strcmp(nomeCampo, "codLinha"))          return reg->codLinha;
+    if (!strcmp(nomeCampo, "codLinhaIntegra"))   return reg->codLinhaIntegra;
+    if (!strcmp(nomeCampo, "codEstIntegra"))     return reg->codEstIntegra;
+    if (!strcmp(nomeCampo, "distProxEstacao"))   return reg->distProxEstacao;
+    if (!strcmp(nomeCampo, "codProxEstacao"))    return reg->codProxEstacao;
+    return -1; // Caso não encontre ou seja nulo
+}
+
+// Retorna o ponteiro da string do campo
+char* obterValorStr(Registro* reg, const char* nomeCampo) {
+    if (!strcmp(nomeCampo, "nomeEstacao")) return reg->nomeEstacao;
+    if (!strcmp(nomeCampo, "nomeLinha"))   return reg->nomeLinha;
+    return NULL;
+}
+
+// Função rápida pra ver se o campo é string ou inteiro
+bool ehCampoString(const char* nomeCampo) {
+    return (!strcmp(nomeCampo, "nomeEstacao") || !strcmp(nomeCampo, "nomeLinha"));
+}
+
 //  --------------- FUNÇÕES PÚBLICAS (PRINCIPAIS) -----------------------------
 
 
@@ -203,4 +226,33 @@ void percorreEBuscaCorrespondencia(FILE* bin, ArgumentosCallback* args) {
     
     if (args->qntd_found == 0)
         args->callback(bin, 0, NULL, args->dados_extras);
+}
+
+bool comparaCampos(Registro* r1, const char* campo1, Registro* r2, const char* campo2) {
+    // Se um campo for string e o outro for número, eles não são comparáveis
+    if (ehCampoString(campo1) != ehCampoString(campo2)) {
+        return false; 
+    }
+
+    // Se forem strings, compara usando strcmp
+    if (ehCampoString(campo1)) {
+        char* str1 = obterValorStr(r1, campo1);
+        char* str2 = obterValorStr(r2, campo2);
+        
+        // Trata caso algum deles seja nulo
+        if (str1 == NULL || str2 == NULL) return false;
+        
+        return strcmp(str1, str2) == 0;
+    } 
+    
+    // Se forem números, extrai os inteiros e compara
+    else {
+        int val1 = obterValorInt(r1, campo1);
+        int val2 = obterValorInt(r2, campo2);
+        
+        //
+        if (val1 == -1 || val2 == -1) return false;
+        
+        return val1 == val2;
+    }
 }

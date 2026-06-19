@@ -40,5 +40,7 @@ void preencherQuery(OQueBuscar* oqbuscar, int m);
 */
 void percorreEBuscaCorrespondencia(FILE* bin, ArgumentosCallback* args);
 
+bool comparaCampos(Registro* r1, const char* campo1, Registro* r2, const char* campo2);
+
 
 #endif
