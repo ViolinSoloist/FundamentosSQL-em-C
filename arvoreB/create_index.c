@@ -8,15 +8,11 @@ void create_index(const char* ArquivoBin, const char* ArquivoIndiceBin)
 {
     
     FILE *bin = rotinaAbrirArquivo(ArquivoBin, LEITURA);
+    if (bin == NULL) return;
     FILE *arv = fopen(ArquivoIndiceBin, "wb+");
+    if (arv == NULL) return;
 
-    // Verificação de erro na abertura
-    if (bin == NULL || arv == NULL) {
-        printf("Falha no processamento do arquivo.\n");
-        if (bin) fclose(bin);
-        if (arv) fclose(arv);
-        return;
-    }
+
 
     // -------------- começa escrevendo o cabeçalho do arquivo de indices ----------------
     CabecalhoArvore cab;

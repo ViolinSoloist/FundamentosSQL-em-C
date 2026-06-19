@@ -25,6 +25,22 @@ void acaoImprimirRegistros_btree(FILE* file, int qtd_encontrados, long* offsets,
     if (reg_atual.nomeLinha) free(reg_atual.nomeLinha);
 }
 
+// POLICE!!!!  ALERTA DE GAMBIARRA !!!! 
+// Função pra testar se depois de achar o registro com o codEstacao na árvore, os campos do registro buscado são LITERALMENTE IGUAIS aos do registro
+// no arquivo binário
+bool comparaQueryRegistro(OQueBuscar* query, Registro* temp){
+    if (query->checar_codEstacao        && query->valores.codEstacao != temp->codEstacao)               return false;
+    if (query->checar_codEstIntegra     && query->valores.codEstIntegra != temp->codEstIntegra)         return false;
+    if (query->checar_codLinha          && query->valores.codLinha != temp->codLinha)                   return false;
+    if (query->checar_codLinhaIntegra   && query->valores.codLinhaIntegra != temp->codLinhaIntegra)     return false;
+    if (query->checar_codProxEstacao    && query->valores.codProxEstacao != temp->codProxEstacao)       return false;
+    if (query->checar_distProxEstacao   && query->valores.distProxEstacao != temp->distProxEstacao)     return false;
+    if (query->checar_nomeEstacao       && strcmp(query->valores.nomeEstacao, temp->nomeEstacao) != 0)  return false;
+    if (query->checar_nomeLinha         && strcmp(query->valores.nomeLinha, temp->nomeLinha) != 0)      return false;
+
+    return true;
+}
+
 /* Funcionalidade [8]: busca registros no arquivo de dados que satisfaçam um critério de busca.
    Se o critério incluir codEstacao, usa o índice árvore-B para busca direta pelo offset.
    Caso contrário, faz varredura sequencial usando o mecanismo de busca do trabalho anterior. */
@@ -63,7 +79,9 @@ void select_where_btree(const char* nomeArquivoBin, const char* nomeArquivoArvor
                 fread(&removido, sizeof(char), 1, bin); // Consome o byte 'removido'
                 Registro temp;
                 binToStruct(&temp, bin);    // Lê os campos do registro
-                mostrarRegistro(&temp);     // Imprime o registro
+                comparaQueryRegistro(&query, &temp) ? 
+                    mostrarRegistro(&temp) :
+                    printf("Registro inexistente.\n");
                 printf("\n");
             }
 
