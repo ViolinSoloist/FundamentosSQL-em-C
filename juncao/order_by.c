@@ -27,25 +27,7 @@ void order_by(const char* nomeArquivoBinario, const char* campo1, const char* no
     FILE* bin1 = rotinaAbrirArquivo(nomeArquivoBinario, LEITURA);
     if (bin1 == NULL) return;
 
-    FILE* bin2 = fopen(nomeArquivoBinarioOrdenado, "wb+");
-    if (bin2 == NULL) {
-        fclose(bin1);
-        return;
-    }
-
-    // Inicializa o cabeçalho do novo arquivo que vai estar ordenado
-    Cabecalho cab2;
-    cab2.status = '0';          
-    cab2.topo = -1;            
-    cab2.proxRRN = 0;          
-    cab2.nroEstacoes = 0;      
-    cab2.nroParesEstacao = 0;
-
-    // Primeira passada: escreve a estrutura base do cabeçalho
-    escreveCabecarioBin(false, bin2, &cab2); 
-    // --------------------------------------------------
-
-    // Alocação dinâmica do vetor de registros baseada no tamanho real do bin1
+    // Alocação dinâmica do vetor de registros baseada no tamanho do bin1
     fseek(bin1, 0, SEEK_END);
     long tamanhoArquivo = ftell(bin1);
     long maxRegistros = (tamanhoArquivo - OFFSET_INI_DADOS) / TAM_REGISTRO;
@@ -64,8 +46,26 @@ void order_by(const char* nomeArquivoBinario, const char* campo1, const char* no
         }
     }
 
+    fclose(bin1);
+
     // Ordena o vetor na memória RAM
     ordenaRegistros(todosRegistros, RRN, campo1);
+
+    FILE* bin2 = fopen(nomeArquivoBinarioOrdenado, "wb+");
+    if (bin2 == NULL) {
+        return;
+    }
+
+    // Inicializa o cabeçalho do novo arquivo que vai estar ordenado
+    Cabecalho cab2;
+    cab2.status = '0';          
+    cab2.topo = -1;            
+    cab2.proxRRN = 0;          
+    cab2.nroEstacoes = 0;      
+    cab2.nroParesEstacao = 0;
+
+    // Primeira passada: escreve a estrutura base do cabeçalho
+    escreveCabecarioBin(false, bin2, &cab2); 
 
     // grava os registros ordenados no bin2
     fseek(bin2, OFFSET_INI_DADOS, SEEK_SET);
@@ -81,8 +81,6 @@ void order_by(const char* nomeArquivoBinario, const char* campo1, const char* no
     cab2.proxRRN = RRN;        // O próximo RRN livre é exatamente a quantidade de registros gravados
     
     // Segunda passada: Atualiza o status e o proxRRN
-
-    
     cab2.status = '1';
     escreveCabecarioBin(true, bin2, &cab2); 
     // Atualiza os contadores de cabecalho
@@ -91,7 +89,6 @@ void order_by(const char* nomeArquivoBinario, const char* campo1, const char* no
     
     // Limpeza final de ponteiros e fechando os arquivos
     free(todosRegistros);
-    fclose(bin1);
     fclose(bin2);
     
     if (binNaTela) BinarioNaTela((char*)nomeArquivoBinarioOrdenado);
