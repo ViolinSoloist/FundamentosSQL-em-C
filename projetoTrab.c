@@ -16,10 +16,10 @@
 #include "select_where_btree.h"
 #include "insert_btree.h"
 #include "delete_btree.h"
-#include "../juncao/select_where_juncao.h"
-#include "../juncao/select_where_juncao_btree.h"
-#include "../juncao/order_by.h"
-#include "../juncao/select_where_juncao_merge.h"
+#include "select_where_juncao.h"
+#include "select_where_juncao_btree.h"
+#include "order_by.h"
+#include "select_where_juncao_merge.h"
 
 int main() { 
 

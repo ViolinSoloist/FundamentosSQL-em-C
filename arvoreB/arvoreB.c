@@ -9,7 +9,7 @@ void ArvoreCriar(FILE* arv, CabecalhoArvore * cab) {
         return;
     }
 
-    // Inicializa o cabeçalho da árvore
+    // inicializa o cabeçalho da árvore
     cab->status = '0';
     cab->noRaiz = -1; // -1 indica que a árvore está vazia
     cab->topo = -1; // -1 indica que não há nós
@@ -19,29 +19,21 @@ void ArvoreCriar(FILE* arv, CabecalhoArvore * cab) {
 }
 
 void NoCriar(NoArvore* no, int tipoNo) {
-    if (no == NULL) {
-        return;
-    }
-
+    if (no == NULL) return;
+    
     no->removido = '0';   // 0 indica que o nó não está removido
     no->proximo = -1;   // guarda o RRN do próximo nó da pilha de removidos, -1 indica que não há próximo
     no->tipoNo = tipoNo;    // -1 indica nó folha, 0 indica nó raiz e 1 indica nó interno. -1 é quando é folha e raiz ao mesmo tempo
     no->nroChaves = 0;  // número de chaves começa em 0
     
-    // Inicializa as chaves com -1 (indicando que estão vazias)
-    for (int i = 0; i < MAX_NOS; i++) {
-        no->Chaves[i] = -1;
-    }
+    // inicializa as chaves com -1 (indicando que estão vazias)
+    for (int i = 0; i < MAX_NOS; i++) no->Chaves[i] = -1;
 
-    // Inicializa os ponteiros de registro com -1 (indicando que estão vazios)
-    for (int i = 0; i < MAX_NOS; i++) {
-        no->Pr[i] = -1;
-    }
+    // zera os ponteiros com -1 pra evitar segmentation fault mais pra frente
+    for (int i = 0; i < MAX_NOS; i++) no->Pr[i] = -1;
 
     // Inicializa os ponteiros para os filhos com -1 (indicando que estão vazios)
-    for (int i = 0; i < MAX_PONTEIROS; i++) {
-        no->P[i] = -1;
-    }
+    for (int i = 0; i < MAX_PONTEIROS; i++) no->P[i] = -1;
 }
 
 // ------------------------------------------------------------------------------------------------------
@@ -55,9 +47,9 @@ void gravarCabecalhoArvore(FILE* arv, CabecalhoArvore* cab){
         return;
     }
 
-    fseek(arv, 0, SEEK_SET); // Move o cursor para o início do arquivo
+    fseek(arv, 0, SEEK_SET); // move o cursor para o início do arquivo
 
-    // Grava os campos do cabeçalho no arquivo
+    // grava os campos do cabeçalho no arquivo
     fwrite(&cab->status, sizeof(char), 1, arv);
     fwrite(&cab->noRaiz, sizeof(int), 1, arv);
     fwrite(&cab->topo, sizeof(int), 1, arv);
@@ -80,7 +72,6 @@ void lerCabecalhoArvore(FILE* arv, CabecalhoArvore* cab){
     fread(&cab->topo, sizeof(int), 1, arv);
     fread(&cab->proxRRN, sizeof(int), 1, arv);
     fread(&cab->nroNos, sizeof(int), 1, arv);
-
 }   
 
 // Grava o conteudo da struct No pro arquivo de indices
@@ -100,7 +91,7 @@ void gravarNoArvore(FILE* arv, NoArvore* no, int RRN) {
     fwrite(&no->tipoNo, sizeof(int), 1, arv);
     fwrite(&no->nroChaves, sizeof(int), 1, arv);
     // Loop para gravar as chaves e os ponteiros intercalados
-    for (int i = 0; i < MAX_NOS; i++) {
+    for (int i=0; i<MAX_NOS; i++) {
         fwrite(&no->Chaves[i], sizeof(int), 1, arv);
         fwrite(&no->Pr[i], sizeof(int), 1, arv);
     }
@@ -124,7 +115,7 @@ void lerNoArvore(FILE* arv, NoArvore* no, int RRN) {
     fread(&no->tipoNo, sizeof(int), 1, arv);
     fread(&no->nroChaves, sizeof(int), 1, arv);
     // Loop para ler as chaves e os ponteiros intercalados
-    for (int i = 0; i < MAX_NOS; i++) {
+    for (int i=0; i<MAX_NOS; i++) {
         fread(&no->Chaves[i], sizeof(int), 1, arv);
         fread(&no->Pr[i], sizeof(int), 1, arv);
     }
@@ -152,7 +143,6 @@ int alocaRRN(FILE* arv, CabecalhoArvore* cab){
     }
 }
 
-
 /*
 ----------------------------------------------------------------------------------
 Implementação das funcionalidades básicas da Árvore B: buscar, inserir e remover
@@ -164,24 +154,25 @@ Implementação das funcionalidades básicas da Árvore B: buscar, inserir e rem
 
 // Função auxiliar para fazer a busca recursiva na árvore B
 long ArvoreBuscarRecursiva(FILE* arv, int RRN, int chave) {
-    if (RRN == -1) {
-        return -1;
-    }
+    if (RRN == -1) return -1;
 
     NoArvore no;
     lerNoArvore(arv, &no, RRN);
 
-    // Verifica se a chave está presente no nó atual
-    for (int i = 0; i < no.nroChaves; i++){
+    // nó logicamente removido? ignora também (correção T1)
+    if (no.removido == '1') return -1;
+
+    // chave está presente no nó atual?
+    for (int i=0; i<no.nroChaves; i++){
         int chaveAtual = no.Chaves[i];
-        if (chaveAtual == chave)        // Se estiver, retorna o índice para a página dela no arquivo
+        if (chaveAtual == chave)        // está => retorna o índice para a página dela no arquivo
             return no.Pr[i];
-        if (chaveAtual > chave && no.tipoNo != -1)      // Se achar alguma chave maior que a procurada, retorna o ponteiro para o último nó filho
+        if (chaveAtual > chave && no.tipoNo != -1)      // se achar alguma chave maior que a procurada, retorna o ponteiro para o último nó filho
             return ArvoreBuscarRecursiva(arv, no.P[i], chave);
         }
 
-    // Verifica se o nó não é tipo folha
-    // Caso não seja e tenha saído do for, quer dizer que a chave buscada é maior que qualquer chave no nó, procura assim no nó filho mais a direita
+    // verifica se o nó não é tipo folha
+    // caso não seja e tenha saído do for, quer dizer que a chave buscada é maior que qualquer chave no nó, procura assim no nó filho mais a direita
     if (no.tipoNo != -1)
         return ArvoreBuscarRecursiva(arv, no.P[no.nroChaves], chave);
 
@@ -204,11 +195,11 @@ long ArvoreBuscar(FILE* arv, CabecalhoArvore* cab, int chave) {
 // --------------------------------------
 // FUNÇÕES PARA A INSERÇÃO NA ÁRVORE B
 
-// Função para inserir ordenado em um nó folha, uma vez que já determinado que ele não está cheio
+// empurra a chave pra dentro da folha mantendo a ordem (já garantimos que tem espaço antes de chamar isso)
 void FolhaInserirOrdenado(NoArvore* no, int chave, int pr){
 
     // Procura enquanto não acha uma chave no nó maior que a chave que queremos inserir
-    for (int i = 0; i < no->nroChaves; i++){
+    for (int i=0; i<no->nroChaves; i++){
         if (no->Chaves[i] > chave) {
             for (int j = no->nroChaves; j > i; j--){
                 no->Chaves[j] = no->Chaves[j-1];        // Da shift nas chaves antigas pra encaixar a chave nova no lugar dela
@@ -233,7 +224,7 @@ void FolhaInserirOrdenado(NoArvore* no, int chave, int pr){
 // Função para inserir ordenado em um nó interno, uma vez já determinado que ele não está cheio
 void InternoInserirOrdenado(NoArvore* no, int chave, int pr, int direitoRRN){
 
-    for (int i = 0; i < no->nroChaves; i++){
+    for (int i=0; i<no->nroChaves; i++){
         if (no->Chaves[i] > chave){
             for (int j = no->nroChaves; j > i; j--){
                 no->Chaves[j] = no->Chaves[j-1];        // Da shift nas chaves antigas pra encaixar a chave nova no lugar dela
@@ -273,7 +264,7 @@ ResultadoInsercao split(FILE* arv, CabecalhoArvore* cab, NoArvore* no, int chave
     tempP[MAX_PONTEIROS-1] = no->P[MAX_PONTEIROS-1];
 
     bool achouChave = false;
-    for (int i = 0; i < MAX_NOS; i++){
+    for (int i=0; i < MAX_NOS; i++){
         if (tempChaves[i] > chaveNova){
             for (int j = MAX_NOS; j > i; j--){
                 tempChaves[j] = tempChaves[j-1];        // Da shift nas chaves antigas pra encaixar a chave nova no lugar dela
@@ -299,8 +290,8 @@ ResultadoInsercao split(FILE* arv, CabecalhoArvore* cab, NoArvore* no, int chave
     
     // Pega o nó anterior e mantém só os dois primeiros valores
     // Será o novo nó esquerdo
-    for (int i = 0; i < MAX_NOS; i++){
-        if (i < 2){
+    for (int i=0; i<MAX_NOS; i++){
+        if (i<2){
             no->Chaves[i] = tempChaves[i];
             no->Pr[i] = tempPr[i];
             no->P[i] = tempP[i];
@@ -330,7 +321,7 @@ ResultadoInsercao split(FILE* arv, CabecalhoArvore* cab, NoArvore* no, int chave
     gravarNoArvore(arv, &novoNo, novoRRN);  // Grava no arquivo de indíces
     gravarCabecalhoArvore(arv, cab);        // Atualiza o cabeçalho
 
-    // Cria struct do resultado da inserção passando as informações do split pra fora da função
+    // empacota o resultado do split pra propagar na volta da recursão
     ResultadoInsercao resultado;
     resultado.chavePromovida = tempChaves[2];
     resultado.houveSplit = true;

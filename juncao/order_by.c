@@ -3,12 +3,22 @@
 int comparaRegistrosCodProxEstacao(const void* a, const void* b){
     const Registro* regA = (const Registro*)a;
     const Registro* regB = (const Registro*)b;
+
+    // força nulos pro final
+    if (regA->codProxEstacao == -1) return 1;
+    if (regB->codProxEstacao == -1) return -1;
+    
     return (regA->codProxEstacao - regB->codProxEstacao);
 }
 
 int comparaRegistrosCodEstacao(const void* a, const void* b){
     const Registro* regA = (const Registro*)a;
     const Registro* regB = (const Registro*)b;
+
+    // força nulos pro final
+    if (regA->codEstacao == -1) return 1;
+    if (regB->codEstacao == -1) return -1;
+
     return (regA->codEstacao - regB->codEstacao);
 }
 

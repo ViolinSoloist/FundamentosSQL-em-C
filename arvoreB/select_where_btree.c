@@ -25,9 +25,8 @@ void acaoImprimirRegistros_btree(FILE* file, int qtd_encontrados, long* offsets,
     if (reg_atual.nomeLinha) free(reg_atual.nomeLinha);
 }
 
-// POLICE!!!!  ALERTA DE GAMBIARRA !!!! 
-// Função pra testar se depois de achar o registro com o codEstacao na árvore, os campos do registro buscado são LITERALMENTE IGUAIS aos do registro
-// no arquivo binário
+// (gambiarra) Função auxiliar pra garantir que todos os campos do registro do arquivo de dados 
+// batem com o que foi pedido na query, já que a busca na árvore só confere a chave primária.
 bool comparaQueryRegistro(OQueBuscar* query, Registro* temp){
     if (query->checar_codEstacao        && query->valores.codEstacao != temp->codEstacao)               return false;
     if (query->checar_codEstIntegra     && query->valores.codEstIntegra != temp->codEstIntegra)         return false;
