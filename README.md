@@ -1,14 +1,28 @@
+# Projeto de Organização de Arquivos (SCC0215)
+
 ## Objetivo
-Esse projeto tem como objetivo aprimorar a compreensão acerca de conceitos de Bases de Dados e Organização de Arquivos, assim como a implementação por trás das funções principais de SQL usando a linguagem C.
+Este projeto consiste na implementação de um gerenciador de arquivos em C, simulando funcionalidades de sistemas de banco de dados relacionais. Ao longo da disciplina, evoluímos de um sistema básico de manipulação de dados para uma estrutura complexa com indexação e algoritmos de junção.
 
-## Explicação do projeto
-Obter dados de um arquivo de entrada e gerar um arquivo binário com esses dados, bem como realizar operações de busca, inserção, remoção e atualização.
+## O que o projeto faz
+O sistema gerencia dados de estações e linhas de metrô/CPTM de São Paulo, permitindo as seguintes operações:
+- **Trabalho Introdutório:** Leitura de CSV, criação de arquivo binário, busca, inserção e remoção (com reaproveitamento de espaço via pilha de removidos).
+- **Trabalho 1:** Indexação dos dados utilizando Árvore-B para buscas rápidas (log(n)).
+- **Trabalho 2:** Implementação de operações avançadas de junção (Join) entre arquivos, incluindo:
+    - *Nested Loop Join* (força bruta).
+    - *Index Join* (usando a Árvore-B).
+    - *Sort-Merge Join* (ordenação externa seguida de intercalação).
 
-## Tema
-Armazenar e recuperar dados relacionados às estações e linhas do metrô e da CPTM (Compainha Paulista de Trens Metropolitanos) da região metropolitana da cidade de São Paulo (SP).
-Um exemplo de uso desses dados é: "Eu preciso pegar uma linha de metrô para ir para o Aeroporto de Guarulhos." Os dados manipulados indicam o trajeto que deve ser feito.
+## Estrutura do Projeto
+O código é modularizado para separar a lógica de negócio das operações de baixo nível:
+- `funcionalidades/`: comandos principais (SQL-like: CREATE TABLE, SELECT, INSERT, etc).
+- `funcionalidades_aux/`: utilitários de busca, manipulação de arquivos e serialização.
+- `arvoreB/`: lógica da árvore-B (inserção, remoção, split e busca).
+- `juncao/`: algoritmos de join e ordenação.
+- `funcoes_fornecidas/`: utilitários básicos da disciplina.
 
-Em detalhes, os dados se referem às estações, às linhas, às distâncias entre as estações e aos trajetos.
-Em Bases de Dados, é normalizado que esses dados devem ser armazenados em diferentes arquivos, de acordo com a normalização realizada.
-Entretanto, como o projeto está sendo implementado na linguagem C e por fins de simplificação, todos os dados serão armazenados em apenas um arquivo.
-Isso significa que existe redundância dos dados, ou seja, o mesmo valor de dados é armazenado mais do que uma vez.
+## Como rodar
+1. Certifique-se de ter o `gcc` instalado.
+2. Utilize o `Makefile` na raiz:
+   - Para compilar: `make`
+   - Para rodar: `make run`
+   - Para limpar os binários: `make clean`
