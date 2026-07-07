@@ -1,28 +1,21 @@
-# Projeto de Organização de Arquivos (SCC0215)
+# Sistema de Gerenciamento de Dados de Transporte (Metrô/CPTM)
 
-## Objetivo
-Este projeto consiste na implementação de um gerenciador de arquivos em C, simulando funcionalidades de sistemas de banco de dados relacionais. Ao longo da disciplina, evoluímos de um sistema básico de manipulação de dados para uma estrutura complexa com indexação e algoritmos de junção.
+## Visão Geral
+Este sistema, desenvolvido em C, gerencia dados de estações e linhas da rede de transporte metropolitano de São Paulo. O software é capaz de processar arquivos binários, realizar consultas complexas, manipular registros com reaproveitamento de espaço e indexar dados para otimizar a performance.
 
-## O que o projeto faz
-O sistema gerencia dados de estações e linhas de metrô/CPTM de São Paulo, permitindo as seguintes operações:
-- **Trabalho Introdutório:** Leitura de CSV, criação de arquivo binário, busca, inserção e remoção (com reaproveitamento de espaço via pilha de removidos).
-- **Trabalho 1:** Indexação dos dados utilizando Árvore-B para buscas rápidas (log(n)).
-- **Trabalho 2:** Implementação de operações avançadas de junção (Join) entre arquivos, incluindo:
+## Funcionalidades
+- **Manipulação de Dados:** Importação de arquivos CSV, persistência em binários e operações de leitura, escrita e atualização de registros.
+- **Gerenciamento de Espaço:** Implementação de pilha de registros logicamente removidos para otimização de espaço em disco.
+- **Indexação:** Estrutura de Árvore-B (B-Tree) integrada para realizar buscas eficientes de estações baseadas em códigos identificadores.
+- **Consultas Relacionais:** Implementação de operações de Junção (Join) para combinar dados entre arquivos, incluindo:
     - *Nested Loop Join* (força bruta).
-    - *Index Join* (usando a Árvore-B).
-    - *Sort-Merge Join* (ordenação externa seguida de intercalação).
+    - *Index Join* (usando índices de Árvore-B).
+    - *Sort-Merge Join* (intercalação de arquivos ordenados).
 
-## Estrutura do Projeto
-O código é modularizado para separar a lógica de negócio das operações de baixo nível:
-- `funcionalidades/`: comandos principais (SQL-like: CREATE TABLE, SELECT, INSERT, etc).
-- `funcionalidades_aux/`: utilitários de busca, manipulação de arquivos e serialização.
-- `arvoreB/`: lógica da árvore-B (inserção, remoção, split e busca).
-- `juncao/`: algoritmos de join e ordenação.
-- `funcoes_fornecidas/`: utilitários básicos da disciplina.
+## Contexto dos Dados
+O projeto utiliza informações sobre estações, linhas, distâncias e integrações da rede de transporte de São Paulo. Embora modelos de banco de dados recomendem a normalização em diversos arquivos, esta implementação concentra os dados para fins de eficiência na manipulação em baixo nível, lidando com redundâncias inerentes à estrutura escolhida.
 
-## Como rodar
-1. Certifique-se de ter o `gcc` instalado.
-2. Utilize o `Makefile` na raiz:
-   - Para compilar: `make`
-   - Para rodar: `make run`
-   - Para limpar os binários: `make clean`
+## Como utilizar
+- `make` para compilar o projeto.
+- `make run` para iniciar a execução.
+- `make clean` para remover arquivos temporários e binários.
