@@ -1,4 +1,4 @@
-# Sistema de Gerenciamento de Dados de Transporte (Metrô/CPTM)
+# Funcionalidades de SQL, desenvolvidas em C
 
 ## Visão Geral
 Este sistema, desenvolvido em C, gerencia dados de estações e linhas da rede de transporte metropolitano de São Paulo. O software é capaz de processar arquivos binários, realizar consultas complexas, manipular registros com reaproveitamento de espaço e indexar dados para otimizar a performance.
@@ -16,6 +16,6 @@ Este sistema, desenvolvido em C, gerencia dados de estações e linhas da rede d
 O projeto utiliza informações sobre estações, linhas, distâncias e integrações da rede de transporte de São Paulo. Embora modelos de banco de dados recomendem a normalização em diversos arquivos, esta implementação concentra os dados para fins de eficiência na manipulação em baixo nível, lidando com redundâncias inerentes à estrutura escolhida.
 
 ## Como utilizar
-- `make` para compilar o projeto.
+- `make all` para compilar o projeto.
 - `make run` para iniciar a execução.
 - `make clean` para remover arquivos temporários e binários.
