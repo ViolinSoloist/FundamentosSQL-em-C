@@ -1,14 +1,21 @@
-## Objetivo
-Esse projeto tem como objetivo aprimorar a compreensão acerca de conceitos de Bases de Dados e Organização de Arquivos, assim como a implementação por trás das funções principais de SQL usando a linguagem C.
+# Funcionalidades de SQL, desenvolvidas em C
 
-## Explicação do projeto
-Obter dados de um arquivo de entrada e gerar um arquivo binário com esses dados, bem como realizar operações de busca, inserção, remoção e atualização.
+## Visão Geral
+Este sistema, desenvolvido em C, gerencia dados de estações e linhas da rede de transporte metropolitano de São Paulo. O software é capaz de processar arquivos binários, realizar consultas complexas, manipular registros com reaproveitamento de espaço e indexar dados para otimizar a performance.
 
-## Tema
-Armazenar e recuperar dados relacionados às estações e linhas do metrô e da CPTM (Compainha Paulista de Trens Metropolitanos) da região metropolitana da cidade de São Paulo (SP).
-Um exemplo de uso desses dados é: "Eu preciso pegar uma linha de metrô para ir para o Aeroporto de Guarulhos." Os dados manipulados indicam o trajeto que deve ser feito.
+## Funcionalidades
+- **Manipulação de Dados:** Importação de arquivos CSV, persistência em binários e operações de leitura, escrita e atualização de registros.
+- **Gerenciamento de Espaço:** Implementação de pilha de registros logicamente removidos para otimização de espaço em disco.
+- **Indexação:** Estrutura de Árvore-B (B-Tree) integrada para realizar buscas eficientes de estações baseadas em códigos identificadores.
+- **Consultas Relacionais:** Implementação de operações de Junção (Join) para combinar dados entre arquivos, incluindo:
+    - *Nested Loop Join* (força bruta).
+    - *Index Join* (usando índices de Árvore-B).
+    - *Sort-Merge Join* (intercalação de arquivos ordenados).
 
-Em detalhes, os dados se referem às estações, às linhas, às distâncias entre as estações e aos trajetos.
-Em Bases de Dados, é normalizado que esses dados devem ser armazenados em diferentes arquivos, de acordo com a normalização realizada.
-Entretanto, como o projeto está sendo implementado na linguagem C e por fins de simplificação, todos os dados serão armazenados em apenas um arquivo.
-Isso significa que existe redundância dos dados, ou seja, o mesmo valor de dados é armazenado mais do que uma vez.
+## Contexto dos Dados
+O projeto utiliza informações sobre estações, linhas, distâncias e integrações da rede de transporte de São Paulo. Embora modelos de banco de dados recomendem a normalização em diversos arquivos, esta implementação concentra os dados para fins de eficiência na manipulação em baixo nível, lidando com redundâncias inerentes à estrutura escolhida.
+
+## Como utilizar
+- `make all` para compilar o projeto.
+- `make run` para iniciar a execução.
+- `make clean` para remover arquivos temporários e binários.
